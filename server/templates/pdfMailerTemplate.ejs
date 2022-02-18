@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApprovalPdfDocument</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+</head>
+
+<body>
+  <section>
+    <div class="container mt-3" style="line-height: 1rem; margin-bottom: 1rem">
+      <div class="row">
+        <h4>Automation Factory</h4>
+        <table class="mt-3">
+          <tbody>
+            <tr class="mt-5">
+              <td style="width: 11rem; padding-left: 2rem">
+                <h6>GFCF Approval</h6>
+              </td>
+              <td style="width: 2rem">
+                <h6>:</h6>
+              </td>
+              <td><%=data.botId %></td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="mt-3">
+          <tbody>
+            <tr class="mt-5">
+              <td style="width: 11rem; padding-left: 2rem">
+                <h6>Approved by</h6>
+              </td>
+              <td style="width: 2rem">
+                <h6>:</h6>
+              </td>
+              <td>
+                <%=data.approver %>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <h6 class="mt-3 ms-5" style="padding: 0">
+          1. Please Provide the following details of the Bot:
+        </h6>
+        <div class="ms-5" style="line-height: 2rem; padding-left: 1rem;">
+          <table class="ms-1">
+            <tbody>
+              <tr>
+                <td style="min-width: 10rem">Bot ID</td>
+                <td style="min-width: 2rem">:</td>
+                <td>
+                  <%=data.botId %>
+                </td>
+              </tr>
+              <tr>
+                <td>Process Name</td>
+                <td>:</td>
+                <td>
+                  <%=data.processName %>
+                </td>
+              </tr>
+              <tr>
+                <td>Lead Platform</td>
+                <td>:</td>
+                <td>
+                  <%=data.leadPlatform %>
+                </td>
+              </tr>
+              <tr>
+                <td>Area</td>
+                <td>:</td>
+                <td>
+                  <%=data.area %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h6 class="ms-5" style="padding: 0">
+          2. Provide a brief description of the functionality of the bot:
+        </h6>
+        <div class="m-3 ms-5" style="width: 90%">
+          <p class="ms-1" style="margin-bottom: 0; padding-left: 0.5rem;">
+            <%=data.processDescription %>
+          </p>
+        </div>
+        <h6 class="ms-5" style="padding: 0">
+          3. Is bot performing any control activity?
+        </h6>
+        <div class="m-3 ms-5" style="width: 90%">
+          <p class="ms-1" style="margin-bottom: 0; padding-left: 0.5rem;">
+            <%=data.controlActivity %>
+          </p>
+        </div>
+
+        <h6 class="ms-5" style="padding: 0">
+          4.  Is bot providing any Information used in a control (IUC) ?
+        </h6>
+        <div class="m-3 ms-5" style="width: 90%">
+          <p class="ms-1" style="margin-bottom: 0; padding-left: 0.5rem;">
+            <%=data.informationControl %>
+          </p>
+        </div>
+        <table class="ms-5 mt-3">
+          <tbody>
+            <tr>
+              <td style="width: 13.7rem; padding-top: 0.5rem;">
+                <h6>5. Comments</h6>
+              </td>
+              <td style="padding-top: 0.5rem; width: 2rem;">
+                <h6>:</h6>
+              </td>
+              <td style="padding-top: 0.5rem;">
+                <%=data.comments %>
+              </td>
+            </tr>
+            <tr>
+              <td style="width: 13.7rem; padding-top: 1rem; ">
+                <h6>6. Approval status</h6>
+              </td>
+              <td style="padding-top: 1rem; width: 2rem;">
+                <h6>:</h6>
+              </td>
+              <td style="padding-top: 1rem;">
+                <%=data.status %>
+              </td>
+            </tr>
+            <tr>
+              <td style="width: 13.7rem;; padding-top: 1rem;">
+                <h6>7. Approval document link</h6>
+              </td>
+              <td style="padding-top: 1rem; width: 2rem;">
+                <h6>:</h6>
+              </td>
+              <td style="padding-top: 1rem;">
+                <a href=<%=data.documentLink %>>
+                  <%=data.documentLink %>
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</body>
+
+</html>

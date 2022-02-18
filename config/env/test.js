@@ -1,0 +1,25 @@
+export default {
+  env: 'test',
+  port: 4540,
+  DefaultEndpointsProtocol: 'https',
+  azureAccountName:"bnlwestgunileveraf01091",
+  azureAccountKey:"XWdFqXzhc1l8vShruqI+q5HfHajoqzyJhnW0PylxnFnFRKs5kM3h0613n9Vx0RLaPaGS4fpD9MX5LKCUPusYcg==",
+  EndpointSuffix: "core.windows.net",
+  elasticPvt: "http://10.234.248.53:9200/",
+  mySqlPvt: "10.234.248.52",
+  mySqlPort:"3306",
+  mySqlUserName: "uniops",
+  elasticPublic: "http://10.234.248.53:9200/",
+  mySqlPassword: "ZseXdr123!",
+  graphApiEndpoint: "https://graph.microsoft.com/beta/me",
+  sendGridApiKey: "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",
+  sendGridFrom: "botstore@automationfactory.com",
+  ccSendGrid:"automation.factory@unilever.com",
+  baseUrl: "https://automation-qa.unilever.com",
+  fileUpload: "https://bnlwestgunileveraf01091.blob.core.windows.net/botstorevideo",
+  apporvalPortalLink:"https://automation-qa.unilever.com/approvals",
+  fetchBlobUrl: "https://bnlwestgunileveraf01091.blob.core.windows.net/botstorevideo",
+  
+
+};
+//sendGridFrom: "HUl.Admin@automationfactory.com",
