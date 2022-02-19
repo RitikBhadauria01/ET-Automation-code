@@ -639,7 +639,23 @@ const Bot = sequelize.define(
     documentFolderName : {
       type : DataTypes.TEXT,
       allowNull : true
-    }
+    },
+    botType: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    landscapeId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    botExternalId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    masterBotID: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   }
 );
 //User.hasMany(Bot, { as: 'Bots' });

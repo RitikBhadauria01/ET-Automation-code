@@ -288,7 +288,7 @@ const getThisBotMailer = async (mailData) => {
     let mailTemplate = createTemplate(requsetADemo);
     console.log('mail template  ---', mailTemplate);
 
-    cc.push(config.ccSendGrid);
+    // cc.push(config.ccSendGrid);
     console.log('ccList  ----', cc);
     console.log('to list --', toMail);
 
@@ -337,7 +337,7 @@ const createMessage = async (to, from, cc, subject, mailTemplate, attachment, bo
     //   to.push('automation.factory@unilever.com');
     console.log('Cannot send mail as To list is empty.');
   }
-  cc.push('automation.factory@unilever.com');
+  // cc.push('automation.factory@unilever.com');
   const msg = {
     to: to.filter((item, i, ar) => ar.indexOf(item) === i && !_.isEmpty(item)),
     from: from,
@@ -709,7 +709,7 @@ const submitAnIdeaMailer = async (mailData) => {
   let toList = [];
   toList.push(email);
   let ccList = [];
-  ccList.push(config.ccSendGrid);
+  // ccList.push(config.ccSendGrid);
   let templateObject = {
     name: name,
     ideaData: mailData.ideaData,
@@ -833,7 +833,7 @@ const updateBotMailer = async (mailData) => {
         }
       });
       // CC: automation.factory@unilever.com
-      ccList.push('automation.factory@unilever.com');
+      // ccList.push('automation.factory@unilever.com');
       var toName = await getUserNameFromEmail(toList[0]);
       toName = !_.isEmpty(toName) ? toName : toList[0];
       _.set(templateData, ['botID'], botID);
@@ -848,7 +848,7 @@ const updateBotMailer = async (mailData) => {
         'Final GPM Approval - [' + botID + ']',
         emailTemplate
       );
-      ccList.push(config.ccSendGrid);
+      // ccList.push(config.ccSendGrid);
 
       mailResponse = await sendMailSg(msg);
       break;
@@ -903,12 +903,12 @@ const updateBotMailer = async (mailData) => {
         }
       });
       // CC: automation.factory@unilever.com
-      ccList.push('automation.factory@unilever.com');
+      // ccList.push('automation.factory@unilever.com');
       _.set(templateData, ['botID'], botID);
       _.set(templateData, ['processName'], processName);
       emailTemplate = getMailerTemplate('secondLevelGpmHasApproved', templateData);
-      ccList.push(config.ccSendGrid);
-      ccList.push(config.ccSendGrid);
+      // ccList.push(config.ccSendGrid);
+      // ccList.push(config.ccSendGrid);
       msg = await createMessage(
         toList,
         config.sendGridFrom,
@@ -973,8 +973,8 @@ const updateBotMailer = async (mailData) => {
         }
       });
       // CC: automation.factory@unilever.com
-      ccList.push('automation.factory@unilever.com');
-      ccList.push(config.ccSendGrid);
+      // ccList.push('automation.factory@unilever.com');
+      // ccList.push(config.ccSendGrid);
       _.set(templateData, ['botID'], botID);
       _.set(templateData, ['processName'], processName);
       emailTemplate = getMailerTemplate('secondGfcfHasApproved', templateData);
@@ -1133,8 +1133,8 @@ const updateBotMailer = async (mailData) => {
         }
       });
       // CC: automation.factory@unilever.com
-      ccList.push('automation.factory@unilever.com');
-      ccList.push(config.ccSendGrid);
+      // ccList.push('automation.factory@unilever.com');
+      // ccList.push(config.ccSendGrid);
       var toName = await getUserNameFromEmail(toList[0]);
       toName = !_.isEmpty(toName) ? toName : toList[0];
       _.set(templateData, ['botID'], botID);
@@ -1220,7 +1220,7 @@ const updateBotMailer = async (mailData) => {
           'GFCF Approval - [' + botID + ']',
           emailTemplate
         );
-        ccList.push(config.ccSendGrid);
+        // ccList.push(config.ccSendGrid);
 
         mailResponse = await sendMailSg(msg);
       }
@@ -1405,7 +1405,7 @@ const createApproveBotMailer = async (mailData) => {
   console.log('resp template--', getTempl);
   // create message // comment this line in production
   //ccList = ['MohitKumar.Singh@unilever.com'];
-  ccList.push(config.ccSendGrid);
+  // ccList.push(config.ccSendGrid);
   // to and cc needs to be different // comment this line in production
   //toList = ['sanjay.sharma@unilever.com'];
   let msg = await createMessage(
