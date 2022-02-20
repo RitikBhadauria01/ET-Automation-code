@@ -16,7 +16,8 @@ import {
   dataMigration,
   exportAllBotsApproval,
   indexalldata,
-  addFolderName
+  addFolderName,
+  editDocumentLink
 } from '../../controllers/botController';
 
 import { authenticateWebUser } from '../../helpers/msal';
@@ -49,6 +50,8 @@ router.get('/getBotUsingId', getBotUsingId);
 router.get('/getBotsForApproval', getBotsForApproval);
 router.post('/addFolderName', addFolderName)
 router.post("/getBotCount", getBotCount);
+router.put('/editDocumentLink', editDocumentLink)
+
 
 
 //getBotsForApproval

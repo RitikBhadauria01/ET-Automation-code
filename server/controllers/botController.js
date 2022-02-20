@@ -2207,6 +2207,35 @@ const getBotCount = catchAsync(async (req, res, next) => {
   }
 }
 });
+const editDocumentLink = async (req, res, next) => {
+   console.log("route works")
+  if (req.body.newDocumentLink) {
+    let responseUpdate = await  BotUser.Bot.update({ documentLink : req.body.newDocumentLink }, {
+      where: {
+        botID: req.body.botID,
+      },
+    });
+
+    console.log(responseUpdate, "RESPONSEUPDATE")
+    if (responseUpdate[0] == 0) {
+      updateMessage = `Bot does not exist with botID ${req.body.botID}`;
+      res.send(new ResponseObject(404, updateMessage, true, {}));
+    } else {
+      let response = await BotUser.Bot.findOne({
+        where: {
+          botID: req.body.botID,
+        },
+      });
+      res.send(new ResponseObject(200, " Document link updated successfully", true, response));
+    }
+
+  }
+  else {
+    next(new AppError('Document Link is Missing', 404));
+    return;
+  }
+
+}
 export default {
   createBot,
   editBot,
@@ -2225,4 +2254,5 @@ export default {
   exportAllBotsApproval,
   indexalldata,
   addFolderName,
+  editDocumentLink,
 };
