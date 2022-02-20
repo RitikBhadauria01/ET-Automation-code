@@ -2190,7 +2190,7 @@ const getBotCount = catchAsync(async (req, res, next) => {
       where: {
         [Op.and]: [
           {landscapeId: landscapeId},
-          {parentBotID: parentBotID},
+          {masterBotID: parentBotID},
       ]
       },
     })
