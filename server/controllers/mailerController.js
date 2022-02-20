@@ -1254,9 +1254,10 @@ const createApproveBotMailer = async (mailData) => {
       leadPlatform,
       subArea,
       botID,
+      botExternalId,
       processName,
     } = mailData.botData;
-    templateData.botID = botID;
+    templateData.botID = botExternalId;
     templateData.processName = processName;
     let { email } = mailData.userData;
     // cc -----el----------------- userEmail -- admin
