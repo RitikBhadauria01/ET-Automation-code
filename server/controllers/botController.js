@@ -823,6 +823,10 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
           'gcadComments',
           'businessOwnerComments',
           'status',
+          'botExternalId',
+          'masterBotID',
+          'botType',
+          'landscapeId',
         ],
         where: {
           [Op.and]: [
