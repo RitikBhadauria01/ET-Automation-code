@@ -3,6 +3,7 @@ import {
   createBot,
   editBot,
   deleteBot,
+  getBotCount,
   getBot,
   getAssocitaion,
   getAll,
