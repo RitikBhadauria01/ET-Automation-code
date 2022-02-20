@@ -2175,10 +2175,37 @@ const addFolderName = async (req, res, next) => {
     console.log(error);
   }
 };
+const getBotCount = catchAsync(async (req, res, next) => {
+  const {landscapeId,parentBotID,botType}=req.body;
+  if(botType==="master"){
+    const getMaxCountOfMasterBotId=await BotUser.Bot.findOne({
+      order: [ [ 'masterBotID', 'DESC' ]],
+  });
+  console.log("getMaxCountOfMasterBotId",getMaxCountOfMasterBotId)
+  res.send(new ResponseObject(200, 'Last Inserted MasterBotId', true, {masterBotID:getMaxCountOfMasterBotId.masterBotID}));
 
+  }else{
+  if(landscapeId,parentBotID){
+    const BotCount=await BotUser.Bot.count({
+      where: {
+        [Op.and]: [
+          {landscapeId: landscapeId},
+          {parentBotID: parentBotID},
+      ]
+      },
+    })
+    res.send(new ResponseObject(200, 'Bot Count', true, {BotCount:BotCount}));
+
+  }else{
+  console.log("v")
+    next(new AppError("Bad Request", 400));
+  }
+}
+});
 export default {
   createBot,
   editBot,
+  getBotCount,
   deleteBot,
   getBot,
   getAll,

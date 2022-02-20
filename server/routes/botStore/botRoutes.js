@@ -47,6 +47,8 @@ router.put('/approveBot', approveBot);
 router.get('/getBotUsingId', getBotUsingId);
 router.get('/getBotsForApproval', getBotsForApproval);
 router.post('/addFolderName', addFolderName)
+router.post("/getBotCount", getBotCount);
+
 
 //getBotsForApproval
 export default router;
