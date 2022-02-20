@@ -2191,6 +2191,7 @@ const getBotCount = catchAsync(async (req, res, next) => {
         [Op.and]: [
           {landscapeId: landscapeId},
           {masterBotID: parentBotID},
+          {requestType: {[Op.eq]: `rollout`},},
       ]
       },
     })
