@@ -43,8 +43,8 @@ export default {
   sendGridFrom: "botstore@automationfactory.com",
   ccSendGrid:"automation.factory@unilever.com",
   baseUrl: "https://automation-qa.unilever.com",
-  fileUpload: "https://newbotstore.blob.core.windows.net/botstorevideo",
+  fileUpload: "https://bnlwestgunileveraf01091.blob.core.windows.net/botstorevideo",
   apporvalPortalLink:"https://automation-qa.unilever.com/approvals",
-  fetchBlobUrl: "https://newbotstore.blob.core.windows.net/botstorevideo",
+  fetchBlobUrl: "https://bnlwestgunileveraf01091.blob.core.windows.net/botstorevideoo",
 };
 // botstore@automationfactory.com   HUl.Admin@automationfactory.com
