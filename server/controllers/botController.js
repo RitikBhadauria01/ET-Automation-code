@@ -2215,8 +2215,8 @@ const getBotIdByExtID = catchAsync(async (req, res, next) => {
       where: 
           {botExternalId: id}
     })
-  console.log("id",BotCount)
-    res.send(new ResponseObject(200, 'Bot Count', true, {BotID:BotCount}));
+    res.send(new ResponseObject(200, 'Bot', true, {botID:BotId.botID}));
+
 });
 const editDocumentLink = async (req, res, next) => {
    console.log("route works")
