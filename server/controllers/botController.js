@@ -2207,6 +2207,17 @@ const getBotCount = catchAsync(async (req, res, next) => {
   }
 }
 });
+const getBotIdByExtID = catchAsync(async (req, res, next) => {
+  const {id}=req.body;
+  console.log("id",id)
+    const BotCount=await BotUser.Bot.findOne({
+      attributes:['botID'],
+      where: 
+          {botExternalId: id}
+    })
+  console.log("id",BotCount)
+    res.send(new ResponseObject(200, 'Bot Count', true, {BotID:BotCount}));
+});
 const editDocumentLink = async (req, res, next) => {
    console.log("route works")
   if (req.body.newDocumentLink) {
@@ -2255,4 +2266,5 @@ export default {
   indexalldata,
   addFolderName,
   editDocumentLink,
+  getBotIdByExtID
 };
