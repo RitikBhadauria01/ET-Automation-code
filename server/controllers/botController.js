@@ -179,6 +179,10 @@ const getBotUsingId = catchAsync(async (req, res, next) => {
     return;
   }
   const result = await BotUser.Bot.findByPk(req.query.botID);
+  if(result.parentBotID!=="" && result.parentBotID!==null){
+    const result1 = await BotUser.Bot.findByPk(result.parentBotID);
+    result.parentBotExternalID=result1.botExternalId
+  }
   console.log('result of get  -----', result);
   let getBotMessage = 'Suceessfully Found';
   console.log(result, 'result of botsssssss');
@@ -2210,7 +2214,7 @@ const getBotCount = catchAsync(async (req, res, next) => {
 const getBotIdByExtID = catchAsync(async (req, res, next) => {
   const {id}=req.body;
   console.log("id",id)
-    const BotCount=await BotUser.Bot.findOne({
+    const BotId=await BotUser.Bot.findOne({
       attributes:['botID'],
       where: 
           {botExternalId: id}
