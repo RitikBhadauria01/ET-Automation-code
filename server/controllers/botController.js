@@ -183,7 +183,7 @@ const getBotUsingId = catchAsync(async (req, res, next) => {
   if(result.parentBotID!=="" && result.parentBotID!==null){
     const result1 = await BotUser.Bot.findByPk(result.parentBotID);
     console.log("result.parentBotID1",result1)
-    result.parentBotExternalID=result1.botExternalId
+    result.dataValues.parentBotExternalID=result1.botExternalId
     console.log("result.parentBotID2",result)
   }
   console.log('result of get  -----', result);
