@@ -166,6 +166,11 @@ const Bot = sequelize.define(
       type: DataTypes.BOOLEAN,
       allowNull: false,
     },
+    catalogueProducts: {
+      // rpa specific
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
     kfaTransactional: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
