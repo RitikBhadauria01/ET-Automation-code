@@ -28,6 +28,42 @@ SubmitAnIdea.init(
         ideaProposedByMail: {
             type: DataTypes.STRING,
             allowNull: false,
+        },
+	expectedRequestType: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+        expectedProcessBotID: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+        expectedCluster: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+	expectedMcoType: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+        expectedLeadPlatform: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+        expectedAreaType: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+        expectedRequestorEmail: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+	expectedDocUpdated: {
+            type: DataTypes.TEXT,
+            allowNull:true
+        },
+        expectedPDDdocument: {
+            type: DataTypes.TEXT,
+            allowNull:true
         }
 
     },

@@ -7,6 +7,7 @@ import getContainer from '../../controllers/getContainerList';
 import blobStorage from '../../controllers/azureBlobStorage';
 import SQL from '../../controllers/sqlConnection';
 
+import ConnectionController from '../../controllers/hooks';
 
 const router = express.Router();
 
@@ -26,6 +27,8 @@ router.get('/containerList', getContainer.azureBlobConnection);
 //sql connection
 router.get('/sql', SQL.getConnection);
 
+router.get('/checkHookConnection', ConnectionController.checkHookConnection);
+router.get('/checkAzureHookConnection', ConnectionController.checkAzureHookConnection);
 
 
 export default router;

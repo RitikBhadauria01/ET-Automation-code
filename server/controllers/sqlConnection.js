@@ -4,11 +4,12 @@ import config from '../../config/env';
 
 async function getConnection(req, res) {
   console.log('hered in sql connection  ');
-  const sequelize = new Sequelize('bot_store',config.mySqlUserName,config.mySqlPassword, {
+  const sequelize = new Sequelize('bot_store_v2',config.mySqlUserName,config.mySqlPassword, {
     host: config.mySqlPvt,
     port: config.mySqlPort,
     dialect:'mysql'
   });
+console.log("526pm",sequelize)
   try {
     await sequelize.authenticate();
     console.log('Connection has been established successfully.');

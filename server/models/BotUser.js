@@ -68,6 +68,14 @@ const User = sequelize.define('Users', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  landscape: {	
+    type: DataTypes.STRING,	
+    allowNull: true,	
+  },	
+  landscapeId: {	
+    type: DataTypes.INTEGER,	
+    allowNull: true,	
+  },
  
 
 });
@@ -264,7 +272,7 @@ const Bot = sequelize.define(
     },
     pddDocument: {
       // supporting documnet section
-      type: DataTypes.CHAR(50),
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     pddApprovalDocument: {
@@ -304,7 +312,7 @@ const Bot = sequelize.define(
     },
     explicitGPMApprovalSupplyChainFinanceDocument: {
       // supporting documnet section
-      type: DataTypes.CHAR(100),
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     explicitGFCFApprovalDocument: {
@@ -661,6 +669,52 @@ const Bot = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    work_item_id: {	
+      type: DataTypes.BIGINT,	
+      allowNull: true,	
+    },	
+    landscapeApprovalDocumentLink: {	
+      type: DataTypes.TEXT,	
+      allowNull: true	
+    },	
+    ///////////////landscape//	
+landscapeApprovers: { // name or email	
+  type: DataTypes.CHAR(100),	
+  allowNull: true,	
+},	
+landscapeApprovalStatuss: {	
+  type: DataTypes.BOOLEAN,	
+  allowNull: true,	
+},	
+landscapeApprovalDate: {	
+  type: DataTypes.DATEONLY,	
+  allowNull: true,	
+},	
+landscapeComments: {	
+  type: DataTypes.TEXT,	
+  allowNull:true,	
+},	
+/////infosec//	
+infosecApprovers: { // name or email	
+  type: DataTypes.CHAR(100),	
+  allowNull: true,	
+},	
+infosecApprovalStatuss: {	
+  type: DataTypes.BOOLEAN,	
+  allowNull: true,	
+},	
+infosecApprovalDate: {	
+  type: DataTypes.DATEONLY,	
+  allowNull: true,	
+},	
+infosecComments: {	
+  type: DataTypes.TEXT,	
+  allowNull:true,	
+},	
+infosecApprovalDocumentLink: {	
+  type: DataTypes.TEXT,	
+  allowNull: true	
+},
   }
 );
 //User.hasMany(Bot, { as: 'Bots' });
@@ -669,3 +723,4 @@ export default {
   Bot,
   User,
 };
+

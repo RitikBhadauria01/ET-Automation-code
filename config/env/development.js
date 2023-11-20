@@ -26,7 +26,7 @@
 
 export default {
   env: 'development',
-  port: 4540,
+  port: 4550,
   DefaultEndpointsProtocol: 'https',
   azureAccountName:"bnlwestgunileveraf01091",
   azureAccountKey:"AJlz6P5C6jPKNYZqFq8GGFMl/3Vbu2IMBJPlIuDz55YBjI5O/M8OiM7q5XxDG63wjGbLvMUwZovN6m8gyQyaKA==",
@@ -46,5 +46,8 @@ export default {
   fileUpload: "https://bnlwestgunileveraf01091.blob.core.windows.net/botstorevideo",
   apporvalPortalLink:"https://automation-qa.unilever.com/approvals",
   fetchBlobUrl: "https://bnlwestgunileveraf01091.blob.core.windows.net/botstorevideoo",
+  SECRET_KEY:"Unilever01!",
+  AZUREURI:"https://dev.azure.com/RPAAutomationFactory/RPA_DevOps_NonProd/_apis/git/repositories?api-version=6.0",
+  SECRET_AZURE_KEY:"bXV6dGlrN2p1cHpwczZkeTZrNDZlaDRrbXRyamhkcDNlbGNhaWJlcnJiYTNsYmlqdXdrYTo="
 };
 // botstore@automationfactory.com   HUl.Admin@automationfactory.com

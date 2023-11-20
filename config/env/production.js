@@ -14,11 +14,15 @@ export default {
   mySqlPassword: 'ZseXdr321!',
   graphApiEndpoint: 'https://graph.microsoft.com/beta/me',
   sendGridApiKey: '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',
-  sendGridFrom: 'botstore@automationfactory.com',
+  sendGridFrom: 'botstore@unilever.com',
+//  sendGridFrom: "botstore@automationfactory.com",
   ccSendGrid: 'automation.factory@unilever.com',
   baseUrl: 'https://automation.unilever.com',
   fileUpload: 'https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo',
   apporvalPortalLink: 'https://automation.unilever.com/approvals',
   fetchBlobUrl: 'https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo',
+  SECRET_KEY:"Unilever01!",
+  AZUREURI:"https://dev.azure.com/RPAAutomationFactory/RPA_DevOps_NonProd/_apis/git/repositories?api-version=6.0",
+  SECRET_AZURE_KEY:"bXV6dGlrN2p1cHpwczZkeTZrNDZlaDRrbXRyamhkcDNlbGNhaWJlcnJiYTNsYmlqdXdrYTo="
 };
 //sendGridFrom: "HUl.Admin@automationfactory.com",

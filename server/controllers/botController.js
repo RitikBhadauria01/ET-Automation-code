@@ -8,18 +8,19 @@ import AppError from '../helpers/AppError';
 import multiparty from 'multiparty';
 import excelToJson from 'convert-excel-to-json';
 import sequalize from '../helpers/Sequalize';
-
+import jwt from "jsonwebtoken";
 import fs from 'fs';
 // create bot
 import ElasticIndex from './elasticSearch';
 import BotUser from '../models/BotUser';
 import AzureFolderNames from '../models/azureFolderNames';
 import azureConnection from '../helpers/azureConnection';
+import axios from "axios";
 import Excel from 'exceljs';
 import config from '../../config/env';
 
 import ElasticClient from '../helpers/elasticConnection';
-import { createApproveBotMailer, updateBotMailer } from './mailerController';
+import { createApproveBotMailer, updateBotMailer,devopsMailer } from './mailerController';
 import { Op, QueryTypes, literal, selectQuery } from 'sequelize';
 
 //Create Bot
@@ -71,7 +72,7 @@ const createBot = catchAsync(async (req, res, next) => {
 
       //console.log('Elastic Index', elasticIndex);
       console.log('CALLING CREATE BOT MAILER');
-      let mailerResponse = await createApproveBotMailer(mailerObject);
+     // let mailerResponse = await createApproveBotMailer(mailerObject);
 
       res.send(new ResponseObject(200, 'Successfully Created', true, botCreateResponse));
       return;
@@ -82,6 +83,8 @@ const createBot = catchAsync(async (req, res, next) => {
     res.send(new ResponseObject(401, 'Unauthorized User', false, {}));
   }
 });
+
+
 
 //  update bot
 const editBot = catchAsync(async (req, res, next) => {
@@ -172,16 +175,17 @@ const getBot = catchAsync(async (req, res, next) => {
 
 // get bot using id and filter // used for approval
 const getBotUsingId = catchAsync(async (req, res, next) => {
-  console.log('req user  ---', req.user);
+  console.log('req user VS  ---', req.user);
   console.log(req.query, 'request query at bot');
   if (req.query == undefined) {
     res.send(new ResponseObject(500, 'Empty Query', false, {}));
     return;
   }
   const result = await BotUser.Bot.findByPk(req.query.botID);
+console.log("VSResult",result);
   console.log("result.parentBotID",result.parentBotID)
   if(result.parentBotID!=="" && result.parentBotID!==null){
-    const result1 = await BotUser.Bot.findByPk(result.parentBotID);
+    const result1 = await BotUser.Bot.findOne({ where: { parentBotID: result.parentBotID } });
     console.log("result.parentBotID1",result1)
     result.dataValues.parentBotExternalID=result1.botExternalId
     console.log("result.parentBotID2",result)
@@ -422,8 +426,26 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
             [Op.like]: `%${search}%`,
           },
         },
+//////new search field added ----12-05-2023
+{
+          masterBotID: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+{
+          parentBotID: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+////////end
+
         {
           botID: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+        {
+          botExternalId: {
             [Op.like]: `%${search}%`,
           },
         },
@@ -472,6 +494,12 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
             [Op.like]: `%${search}%`,
           },
         },
+        {
+          landscapeId: {
+            [Op.like]: `%${search}%`,
+          },
+        },
+
       ],
     };
   }
@@ -492,29 +520,54 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
   console.log('filter hai ye ---', filter);
   // console.log('req user  ---', req.user);
   let reqFilterGpm = {
-    area: req.user.area,
-    subArea: req.user.subArea,
     leadPlatform: req.user.leadPlatform,
   };
+  console.log("reqFilterGpm",reqFilterGpm)
 
   let reqFilterGfcf = {
     cluster: req.user.cluster,
-    mco: req.user.mco,
   };
+  if(req.user.mco){
+    reqFilterGfcf['mco'] = {[Op.like]:"%"+req.user.mco+"%"};
+  }
+  if(req.user.area){
+    reqFilterGfcf['area'] = req.user.area;
+    reqFilterGpm['area']= req.user.area;
+  }
+  if(req.user.subArea){
+    reqFilterGfcf['subArea'] = req.user.subArea;
+    reqFilterGpm['subArea'] = req.user.subArea;
+  }
+  if(req.user.leadPlatform){
+    reqFilterGfcf['leadPlatform'] = req.user.leadPlatform;
+  }
+console.log("reqFilterGfcf++++",req.user)
 
+
+ let reqFilterLandscape={
+  landscapeId: req.user.landscapeId
+};
+ console.log("reqFilterLandscape", reqFilterLandscape)
   let reqFilter = null;
   if (
     req.user.userType == 'firstGfcf' ||
     req.user.userType == 'gfcf' ||
-    req.user.userType == 'gCad'
+    req.user.userType == 'gCad' ||
+     req.user.userType == 'infosec' ||
+    req.user.userType == 'landscape'
   ) {
-    //console.log('user type gfcf ---', req.user.userType);
+    console.log('user type gfcf ---', req.user.userType);
     reqFilter = reqFilterGfcf;
-    //console.log('req filter ---', reqFilter);
-  } else if (req.user.userType == 'firstLevelGPMApprover' || req.user.userType == 'GPMapprover') {
+    console.log('req filter ---', reqFilter);
+  }  if (req.user.userType == 'firstLevelGPMApprover' || req.user.userType == 'GPMapprover') {
     //console.log('inside else');
     reqFilter = reqFilterGpm;
   }
+   if (req.user.userType == 'landscape'){
+    console.log('inside vineeth dekho')
+    reqFilter = reqFilterLandscape;
+  }
+
   if (req.user.userType == 'firstGfcf' || req.user.userType == 'gfcf') {
     console.log('heere ---firstGfcf -----3');
     let whereQuery = '';
@@ -537,7 +590,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
             //  { firstLevelgfcfApprover: { [Op.not]: [null, ''] } },
             //  { secondLevelGfcfApprover: { [Op.or]: [null, ''] } },
             //// questionable case
-            reqFilter,
+           // reqFilter,
+            { cluster: { [Op.or]: [ 'Africa', 'Europe','Global','LATAM','SEAA','North America','North Asia','NAMETRUB','South Asia'] } },
             filter,
             searchFilter,
           ],
@@ -553,7 +607,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
 
             { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
             //  { firstLevelgfcfApprover: { [Op.or]: [null, ''] } },
-            reqFilter,
+           // reqFilter,
+            { cluster: { [Op.or]: [ 'Africa', 'Europe','Global','LATAM','SEAA','North America','North Asia','NAMETRUB','South Asia'] } },
             filter,
             searchFilter,
           ],
@@ -582,7 +637,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
             { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
             //{ firstLevelgfcfApprover: { [Op.not]: '' } },
              { firstLevelgfcfApprovalStatus: true },
-            reqFilter,
+           // reqFilter,
+            { cluster: { [Op.or]: [ 'Africa', 'Europe','Global','LATAM','SEAA','North America','North Asia','NAMETRUB','South Asia'] } },
             filter,
             searchFilter,
           ],
@@ -598,7 +654,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
             { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
             // { secondLevelGfcfApprover: {[Op.or]:[null,'']} }
 
-            reqFilter,
+           // reqFilter,
+           { cluster: { [Op.or]: [ 'Africa', 'Europe','Global','LATAM','SEAA','North America','North Asia','NAMETRUB','South Asia'] } },
             filter,
             searchFilter,
           ],
@@ -633,7 +690,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
             { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
             // {firstLevelGpmApprover: { [Op.or]: [null, ''] } },
             // {secondLevelGpmApprover:{[Op.or]:[null,'']}},
-            reqFilter,
+           // reqFilter,
+            { LeadPlatform: { [Op.or]: ['HR Services','Customer Development','Finance','IT Services','Legal','Marketing','I&A','R&D','Supply Chain'] } },
             filter,
             searchFilter,
           ],
@@ -644,7 +702,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
           [Op.and]: [
             { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
             // {firstLevelGpmApprover: { [Op.or]: [null, ''] } },
-            reqFilter,
+           // reqFilter,
+           { LeadPlatform: { [Op.or]: ['HR Services','Customer Development','Finance','IT Services','Legal','Marketing','I&A','R&D','Supply Chain'] } },
             filter,
             searchFilter,
           ],
@@ -666,7 +725,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
            // { firstLevelGpmApprover: { [Op.not]: '' } },
              { firstLevelGpmApprovalStatus : true },
             // { secondLevelGpmApprover:{[Op.or]:[null,'']}},
-            reqFilter,
+           //  reqFilter,
+            { LeadPlatform: { [Op.or]: ['HR Services','Customer Development','Finance','IT Services','Legal','Marketing','I&A','R&D','Supply Chain'] } },
             filter,
             searchFilter,
           ],
@@ -676,7 +736,8 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
           [Op.and]: [
             { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
             // { secondLevelGpmApprover:{[Op.or]:[null,'']}},
-            reqFilter,
+           // reqFilter,
+            { LeadPlatform: { [Op.or]: ['HR Services','Customer Development','Finance','IT Services','Legal','Marketing','I&A','R&D','Supply Chain'] } },
             filter,
             searchFilter,
           ],
@@ -691,7 +752,69 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
     });
     res.send(new ResponseObject(200, 'Bot Found', true, gpmResponse));
     return;
-  } else if (req.user.userType == 'gCad') {
+  }
+  else if(req.user.userType == 'landscape'){
+    console.log('req user landscape------inside');
+    console.log('req filter ----Inside',reqFilter);
+    if (filter.landscape) {
+      delete filter.landscape
+    }
+    let whereQuery= '';
+    if(req.user.userType == 'landscape'){
+      const landscapeUser= await BotUser.User.findAll({
+        where:{
+          [Op.and]:[{ userType: 'landscape'}, reqFilter],
+        }
+      })
+      console.log('landscapeUser',landscapeUser);
+      if(landscapeUser.length > 0){
+        console.log('landscape user inside')
+        whereQuery={
+          [Op.and]:[
+            { status:{[Op.not]:['Live', 'On Hold', 'Rejected', 'Retired']}},
+            reqFilter,
+            filter,
+            searchFilter,
+          ]
+        };
+      }
+    }
+    console.log("whwere cineeth",whereQuery)
+    const result=await BotUser.Bot.findAndCountAll({
+       limit:5,
+       offset: offset,
+       order:[['botID','desc']],
+       where:whereQuery
+    })
+    console.log('result --- landscape',result);
+     res.send(new ResponseObject(200,'Bot Found', true, result));
+     return;
+  }
+  else if(req.user.userType == 'infosec'){
+    console.log('req user infosec',req.user.userType);
+    console.log('req filter infosec',reqFilter)
+    if(filter.infosec){
+      delete filter.infosec
+    }
+    filter.infosecApproval=['apoorv.sharma@unilever.com']
+    const result=await BotUser.Bot.findAndCountAll({
+      limit:5,
+      offset: offset,
+      order:[['botID','desc']],
+      where:{
+        [Op.and]:[
+          {status:{[Op.not]:['Live', 'On Hold', 'Rejected', 'Retired']}},
+          filter,
+          searchFilter,
+          //filter & searchFilter need to be check once it its not working
+        ]
+      }
+    })
+    console.log ('result++++++ infosec',result)
+    res.send(new ResponseObject(200, 'Bot Found', true, result));
+  }
+  
+  else if (req.user.userType == 'gCad') {
     console.log('req user gcad -------', req.user.userType);
     console.log('req filter  ---', reqFilter);
     filter.cluster = "Global"
@@ -744,16 +867,16 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
     req.user.userType == 'qrManager' ||
     req.user.userType == 'businessOwner'
   ) {
-    console.log('req query -------', req.query);
+    console.log('req query ------else-', req.query);
     let gpm = false;
     if (Object.keys(req.query).includes('gpm')) {
       gpm = req.query.gpm;
       delete req.query['gpm'];
     }
-    console.log('req query ---', req.query);
+    console.log('req query --- else', req.query);
     if (gpm) {
       console.log('when gpm is true');
-      let queryString = `concat(concat(leadPlatform, area), subArea) in (Select concat(concat(u.leadPlatform, u.area ), u.subArea) from bot_store.Users as u where userType in ('GPMapprover', 'firstLevelGPMApprover'))`;
+      let queryString = `concat(concat(leadPlatform, area), subArea) in (Select concat(concat(u.leadPlatform, u.area ), u.subArea) from bot_store_v2.Users as u where userType in ('GPMapprover', 'firstLevelGPMApprover'))`;
 
       let getBotsWithApprover = await BotUser.Bot.findAll({
         order: [['botID', 'desc']],
@@ -766,7 +889,7 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
           ],
         },
       });
-
+      console.log('length --++++++', getBotsWithApprover);
       //  let getBotsWithApprover = await BotUser.Bot.findAll({ ,where: {[Op.and] : [literal(queryString), searchFilter, filter, { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } }]}})
 
       console.log('Offset  ---', offset);
@@ -777,7 +900,7 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
       // offset +5 less than total length ;
       if (offset + 5 <= length) {
         getBotsWithApprover = getBotsWithApprover.slice(offset, offset + 5);
-        console.log(getBotsWithApprover.length);
+        console.log(getBotsWithApprover.length,"beeralavineeth@gmail.com");
       } else {
         getBotsWithApprover = getBotsWithApprover.slice(offset, length);
       }
@@ -789,7 +912,103 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
           rows: getBotsWithApprover,
         })
       );
-    } else {
+    } 
+    let landscape=false;
+    if(Object.keys(req.query).includes('landscape'))
+    {
+      landscape= req.query.landscape;
+      delete req.query['landscape'];
+
+    }
+    console.log('testing-----')
+    if (landscape) {
+      console.log('when landscape is true');
+      //let queryString = `concat(concat(leadPlatform, area), subArea) in (Select concat(concat(u.leadPlatform, u.area ), u.subArea) from bot_store.Users as u where userType in ('GPMapprover', 'firstLevelGPMApprover'))`;
+
+      let getBotsWithApprover = await BotUser.Bot.findAll({
+        order: [['botID', 'desc']],
+        where: {
+          [Op.and]: [
+            // literal(queryString),
+            { landscapeId: { [Op.ne]: null } },
+            searchFilter,
+            filter,
+            { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
+          ],
+        },
+      });
+      console.log('length landscape vineeth reddy', getBotsWithApprover);
+      //  let getBotsWithApprover = await BotUser.Bot.findAll({ ,where: {[Op.and] : [literal(queryString), searchFilter, filter, { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } }]}})
+
+      console.log('Offset  ---landscape', offset);
+      console.log('length -- landscape', getBotsWithApprover.length);
+      let length = getBotsWithApprover.length;
+      // slice array on bassic of offset
+      // offset ---- offset +5 ;
+      // offset +5 less than total length ;
+      if (offset + 5 <= length) {
+        getBotsWithApprover = getBotsWithApprover.slice(offset, offset + 5);
+        console.log(getBotsWithApprover.length,"Vineeth getBotsWithApprover");
+      } else {
+        getBotsWithApprover = getBotsWithApprover.slice(offset, length);
+      }
+      console.log('lenghtt  --- landscape', length);
+      //getBotsWithApprover = getBotsWithApprover.slice(offset,offset+10);
+      res.send(
+        new ResponseObject(200, 'Bot Found', true, {
+          count: length,
+          rows: getBotsWithApprover,
+        })
+      );
+      return
+    } 
+    let infosec=false;
+    if(Object.keys(req.query).includes('infosec'))
+    {
+      infosec= req.query.infosec;
+      delete req.query['infosec'];
+
+    }
+    console.log('vineeth infosec');
+    if(infosec){
+      console.log('when infosec is true')
+      let getBotsWithApprover= await BotUser.Bot.findAll({
+        order: [['botID', 'desc']],
+        where:{
+          [Op.and]: [
+            // literal(queryString),
+           // { landscapeId: { [Op.ne]: null } },
+            searchFilter,
+            filter,
+            { status: { [Op.not]: ['Live', 'On Hold', 'Rejected', 'Retired'] } },
+          ],
+        }
+      })
+      console.log('length infosec', getBotsWithApprover);
+      console.log('Offset  ---infosec', offset);
+      console.log('length -- infosec', getBotsWithApprover.length);
+      let length = getBotsWithApprover.length;
+      // slice array on bassic of offset
+      // offset ---- offset +5 ;
+      // offset +5 less than total length ;
+      if (offset + 5 <= length) {
+        getBotsWithApprover = getBotsWithApprover.slice(offset, offset + 5);
+        console.log(getBotsWithApprover.length,"Vineeth getBotsWithApprover infosec");
+      } else {
+        getBotsWithApprover = getBotsWithApprover.slice(offset, length);
+      }
+      console.log('lenghtt  --- infosec', length);
+      //getBotsWithApprover = getBotsWithApprover.slice(offset,offset+10);
+      res.send(
+        new ResponseObject(200, 'Bot Found', true, {
+          count: length,
+          rows: getBotsWithApprover,
+        })
+      );
+
+    }
+    
+    else {
       console.log('heyyyyyy');
 
       const result = await BotUser.Bot.findAndCountAll({
@@ -804,6 +1023,7 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
           'leadPlatform',
           'area',
           'subArea',
+          'cluster',
           'country',
           'requesterEmailID',
           'engagementLead',
@@ -834,6 +1054,15 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
           'masterBotID',
           'botType',
           'landscapeId',
+          'landscapeApproval',
+          'landscapeApprovers',
+          'landscapeApprovalStatuss',
+          'landscapeApprovalDate',
+          'landscapeComments',
+          'infosecApprovers',
+          'infosecApprovalStatuss',
+          'infosecApprovalDate',
+          'infosecComments',
         ],
         where: {
           [Op.and]: [
@@ -850,8 +1079,10 @@ const getBotsForApproval = catchAsync(async (req, res, next) => {
 });
 
 const approveBot = catchAsync(async (req, res, next) => {
-  console.log('req user ---', req.user);
+  console.log('req userVV ---', req.user);
+console.log("req.bodyVS",req.body);
   var userType = _.get(req, ['user', 'userType'], '');
+console.log("userType",userType);
   var approvalMailDefault = [
     'firstGfcf',
     'gfcf',
@@ -860,20 +1091,26 @@ const approveBot = catchAsync(async (req, res, next) => {
     'gCad',
     'qrManager',
     'businessOwner',
+    'landscape',	
+    'infosec',
   ];
+console.log("approvaldefault",approvalMailDefault);
 
   if (_.includes(approvalMailDefault, userType)) {
+console.log("bot to update fields,", req.body.toUpdateBotFileds, req.body.botID)
     const updateBotData = await BotUser.Bot.update(req.body.toUpdateBotFileds, {
       where: {
         botID: req.body.botID,
       },
     });
+console.log("updateBotData",updateBotData);
 
     const getBotToUpdateElastic = await BotUser.Bot.findOne({
       where: {
         botID: req.body.botID,
       },
     });
+console.log("botUpdateElastic",getBotToUpdateElastic);
 
     const elasticUpdateResponse = await ElasticClient.index({
       index: 'botindex',
@@ -881,7 +1118,8 @@ const approveBot = catchAsync(async (req, res, next) => {
       type: '_doc',
       body: getBotToUpdateElastic.dataValues,
     });
-
+console.log("elasticUpdate",elasticUpdateResponse);
+console.log("1234567VV",getBotToUpdateElastic.dataValues.firstLevelGpmApprovalStatus);
     let mailerObject = {
       userData: req.user,
       botData: getBotToUpdateElastic.dataValues,
@@ -932,6 +1170,25 @@ const approveBot = catchAsync(async (req, res, next) => {
         }
 
         break;
+        case 'landscape':
+          if (getBotToUpdateElastic.dataValues.landscapeApprovalStatuss == 1) {
+            //updateBotMailer(mailerObject);
+            res.send(new ResponseObject(200, 'Approved successfully', true, updateBotData));
+          } else {
+            res.send(new ResponseObject(200, 'Rejected successfully', true, updateBotData));
+          }
+  
+          break;
+          case 'infosec':
+            if (getBotToUpdateElastic.dataValues.infosecApprovalStatuss == 1) {
+              //updateBotMailer(mailerObject);
+              res.send(new ResponseObject(200, 'Approved successfully', true, updateBotData));
+            } else {
+              res.send(new ResponseObject(200, 'Rejected successfully', true, updateBotData));
+            }
+    
+            break;
+        
 
       default:
         updateBotMailer(mailerObject);
@@ -966,7 +1223,7 @@ const exportAllBots = catchAsync(async (req, res, next) => {
   let attributes = [];
   if (req.user.userType == 'endUser' || req.user.userType == 'businessOwner') {
     attributes =   [
-      ["botID", "Bot ID"] ,
+      ["botExternalId", "Bot ID"] ,
       ["leadPlatform", "Lead platform"],
       ["area", "Area"] ,
       ["subArea", "Sub area"] ,
@@ -994,7 +1251,8 @@ const exportAllBots = catchAsync(async (req, res, next) => {
       ['createdBy', 'Created by'],
       ['documentLink', 'Documents link'],
       ['botDemoVideo', 'Demo video link'],
-      ['documentFolderName', 'documentFolderName']
+      ['documentFolderName', 'documentFolderName'],
+['landscapeId','landscapeId']
       
    ]
 
@@ -1005,7 +1263,7 @@ const exportAllBots = catchAsync(async (req, res, next) => {
   } else {
     console.log('inside apporval ');
     attributes = [
-      ['botID', 'Bot ID'],
+      ['botExternalId', 'Bot ID'],
       ['leadPlatform', 'Lead platform'],
       ['area', 'Area'],
       ['subArea', 'Sub area'],
@@ -1081,10 +1339,20 @@ const exportAllBots = catchAsync(async (req, res, next) => {
       ['firstLevelControlTable', 'Control table'],
       ['firstLevelControlProcessArea', 'Control process area'],
       ['firstLevelControlSubProcessArea', 'Control sub process area'],
-      ['createdBy', 'Created by'],
       ['documentLink', 'Documents link'],
       ['botDemoVideo', 'Demo video link'],
-      ['documentFolderName', 'documentFolderName']
+      ['documentFolderName', 'documentFolderName'],
+      ['catalogueProducts','catalogueProducts'],
+      ['landscapeApproval', 'landscape Approval'],	
+      ['landscapeApprovalStatuss', 'landscape Approval Status'],	
+      ['landscapeApprovalDate', 'landscape Approval Date'],	
+      ['landscapeComments', 'landscape Comments'],	
+      ['infosecApproval', 'Infosec Approval'],	
+      ['infosecApprovalStatuss', 'Infosec Approval Status'],	
+      ['infosecApprovalDate', 'Infosec Approval Date'],	
+      ['infosecComments', 'Infosec Comments'],
+      ['createdBy', 'Created by'],
+['landscapeId','landscapeId']
     ];
   }
 
@@ -1092,11 +1360,28 @@ const exportAllBots = catchAsync(async (req, res, next) => {
   let response = await BotUser.Bot.findAll({
     attributes: attributes,
     where: filter,
-    order: [['botID', 'desc']],
+    order: [['botExternalId', 'desc']],
   });
   //
   let myAr = [];
-  console.log( "response", response)
+  console.log( "response", response);
+  const getLandscapeName = (landscapeId) => {
+    const id = String(landscapeId);
+    switch (id) {
+      case '0':
+        return 'Global';
+      case '1':
+        return 'Fusion';
+      case '2':
+        return 'Sirius';
+      case '3':
+        return 'Cordillera';
+      case '4':
+        return 'U2K2';
+      default:
+        return '';
+    }
+  };
 
   for (let i in response) {
     // console.log('response data values --', response[i].dataValues.KFA);
@@ -1279,6 +1564,16 @@ const exportAllBots = catchAsync(async (req, res, next) => {
     else {
       response[i].dataValues["KFA IUC"] = "";
     }
+const landscapeId = response[i].dataValues['landscapeId'];
+  console.log('Original landscapeId:', landscapeId);
+
+  // Set Landscape Name based on landscapeId
+  response[i].dataValues['Landscape Name'] = getLandscapeName(landscapeId);
+
+  // Remove the original landscapeId from the response
+  delete response[i].dataValues['landscapeId'];
+
+  console.log('Modified Landscape Name:', response[i].dataValues['Landscape Name']);
 
     if (response[i].dataValues['Demo video link'] && response[i].dataValues['Demo video link'] != "null") {
 
@@ -1352,9 +1647,19 @@ const exportAllBotsApproval = catchAsync(async (req, res, next) => {
     filter = {
       cluster: req.user.cluster,
       mco: req.user.mco,
+      leadPlatform: req.user.leadPlatform,	
+      area: req.user.area,	
+      subArea: req.user.subArea,
       kfa: true,
     };
-  } else if (req.user.userType == 'gCad') {
+  }
+  else if (req.user.userType == 'landscape'){
+    filter={
+      landscapeId: req.user.landscapeId,
+    }
+
+  } 
+  else if (req.user.userType == 'gCad') {
     filter = {
       cluster: req.user.cluster,
       mco: req.user.mco,
@@ -1370,7 +1675,7 @@ const exportAllBotsApproval = catchAsync(async (req, res, next) => {
   let attributes = [];
   console.log("second")
   attributes = [
-    ['botID', 'Bot ID'],
+    ['botExternalId', 'Bot ID'],
     ['leadPlatform', 'Lead platform'],
     ['area', 'Area'],
     ['subArea', 'Sub area'],
@@ -1457,7 +1762,7 @@ const exportAllBotsApproval = catchAsync(async (req, res, next) => {
   let response = await BotUser.Bot.findAll({
     attributes: attributes,
     where: filter,
-    order: [['botID', 'desc']],
+    order: [['botExternalId', 'desc']],
   });
 
   console.log(response, "responseeeess");
@@ -2254,6 +2559,80 @@ const editDocumentLink = async (req, res, next) => {
   }
 
 }
+
+//for devops calling api for bot id with status
+const updateBotStatus=catchAsync(async (req,res,next)=>{
+  console.log(req.headers.authorization)
+  // let usertoken=await jwt.verify(req.headers['authorization'],"Unilever01!")
+  // console.log("usertoken",usertoken)
+  jwt.verify(req.headers['authorization'],config.SECRET_KEY,async(err,res1)=>{
+    if(err){
+        console.log("Token Failed",err)
+        next(err)
+    }else{
+  try {
+    let statusNew=req.body.status;
+    let list = ["Ideas", "Initial Demand","Feasibility", "Design", "In-progress", "Build", "UAT", "On hold", "Rejected", "Retired" ]
+    //uncomment below line to check if sthe above line is not working
+    //let list = { Ideas: "Ideas", InitialDemand: "InitialDemand", Feasibility: "Feasibility", Design: "Design", Inprogress: "Inprogress", Build: "Build", UAT: "UAT", Onhold: "Onhold", Rejected: "Rejected", Retired: "Retired" }
+    console.log(list,"list===")
+    const {botID,status}=req.body;
+    if (!botID || !status) {
+      next(new AppError('Please provide botID and status', 400));
+      return;
+    }
+    // if (statusNew==list[statusNew]) {       uncomment thisif the below if condition is not work
+      if (list.includes(statusNew)) {
+      const updateBot = await BotUser.Bot.update({status:status}, {
+        where: {
+          botExternalId: botID,
+        },
+      });
+      res.status(200).json({
+        status: 'success',
+        data: {
+          updateBot,
+        },
+      });
+      const getBotToUpdateElastic = await BotUser.Bot.findOne({
+        where: {
+          botID: req.body.botID,
+        },
+      });
+      console.log('get bot  ----------', getBotToUpdateElastic);
+      //console.log('req body  ---', getBotToUpdateElastic.dataValues);;
+      //let botId = parseInt(req.body.botID);
+      const elasticUpdateResponse =  await ElasticClient.index({
+        index: 'botindex',
+        id: req.body.botID,
+        type: '_doc',
+        body: getBotToUpdateElastic.dataValues,
+      });
+    
+      console.log('bot updated on elastic  ---', elasticUpdateResponse);
+      // let mailerObject = {
+      //   user: req.user,
+      //   botData: getBotToUpdateElastic.dataValues,
+      // };
+      // console.log('mailer object --', mailerObject);
+      // await updateBotMailer(mailerObject);
+     }
+    else{
+      res.status(400).json({
+        status: 'failed',
+        message: 'Please provide valid status',
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+}
+  })
+  
+})
+
+
+
 export default {
   createBot,
   editBot,
@@ -2273,5 +2652,7 @@ export default {
   indexalldata,
   addFolderName,
   editDocumentLink,
-  getBotIdByExtID
+  getBotIdByExtID,
+ updateBotStatus
 };
+

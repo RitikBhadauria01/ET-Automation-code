@@ -1,6 +1,7 @@
 import catchAsync from '../helpers/catchAsync';
 
 import Mailer from '../models/Mailer';
+import Submitanideael from '../models/SubmitAnIdeaEl';
 import ResponseObject from '../helpers/responseObjectClass';
 import multiparty from 'multiparty';
 import excelToJson from 'convert-excel-to-json';
@@ -8,6 +9,7 @@ import { Op } from 'sequelize';
 import sgMail from '@sendgrid/mail';
 import config from '../../config/env';
 import Excel from 'exceljs';
+import axios from 'axios';
 
 import azureConnection from '../helpers/azureConnection';
 import { htmlToPdf } from '../helpers/mailer';
@@ -258,15 +260,15 @@ const getThisBotMailer = async (mailData) => {
   requsetADemo.technology = mailData.mailData.technology;
   requsetADemo.remark = mailData.mailData.remark;
   // get user Email for cc
-  let userEmail = mailData.user.email;
-  let cc = [];
-  let toMail = [];
-  toMail.push(userEmail);
+//vvvvv  let userEmail = mailData.user.email;
+//vvvvvv  let cc = [];
+//vvvvvv  let toMail = [];
+//vvvvvv  toMail.push(userEmail);
   let GetMailResposne = await getMailTo(mailData.mailData.leadPlatform, mailData.mailData.cluster);
-  console.log('el------------', GetMailResposne);
+ // console.log('el------------', GetMailResposne);
 
   for (let i = 0; i < GetMailResposne.length; i++) {
-    cc.push(GetMailResposne[i]);
+//vvvvvv    cc.push(GetMailResposne[i]);
   }
   //toMail.concat(GetMailResposne);
 
@@ -289,8 +291,8 @@ const getThisBotMailer = async (mailData) => {
     console.log('mail template  ---', mailTemplate);
 
     // cc.push(config.ccSendGrid);
-    console.log('ccList  ----', cc);
-    console.log('to list --', toMail);
+//    console.log('ccList  ----', cc);
+ //   console.log('to list --', toMail);
 
     // un comment this code in production;
 
@@ -305,7 +307,7 @@ const getThisBotMailer = async (mailData) => {
     console.log('msg --', msg);
     // return;
     mailResponse = await sendMailSg(msg);
-    console.log('mail response ---', mailResponse);
+   // console.log('mail response ---', mailResponse);
   }
   return true;
 };
@@ -366,11 +368,11 @@ const createMessage = async (to, from, cc, subject, mailTemplate, attachment, bo
 
 const contactMailer = async (mailData) => {
   let userEmail = mailData.user.email;
-  console.log('mail data -', mailData.mailData);
-  console.log('common cc --', config.ccSendGrid);
-  console.log('user email --', userEmail);
+//vvvvvv  console.log('mail data -', mailData.mailData);
+//vvvvvv  console.log('common cc --', config.ccSendGrid);
+//vvvvvv  console.log('user email --', userEmail);
 
-  let cc = [];
+//vvvvvv  let cc = [];
   if (mailData.mailData.UserEmail !== userEmail) {
     // cc.push(mailData.mailData.UserEmail);
     // cc.push(mailData.mailData.UserEmail, config.ccSendGrid);
@@ -378,18 +380,18 @@ const contactMailer = async (mailData) => {
     // cc.push(config.ccSendGrid);
   }
 
-  console.log('cc----', cc);
+//vvvvvv  console.log('cc----', cc);
 
-  let toMail = [];
-  console.log('To mail --', mailData.mailData.UserEmail);
-  toMail.push(userEmail);
+//vvvvvv  let toMail = [];
+//vvvvvv  console.log('To mail --', mailData.mailData.UserEmail);
+//vvvvvv  toMail.push(userEmail);
   // create template
   let template = createTemplate(mailData);
 
   // create msg
   let msg = await createMessage(
     toMail,
-    config.sendGridFrom,
+//vvvvvv    config.sendGridFrom,
     cc,
     `${mailData.type} Automation Factory`,
     template
@@ -531,7 +533,7 @@ var getMailerTemplate = (mailType, templateData) => {
           <section id="containt" style="background-color: #deeaf6;">     
               <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500;">
                   <p>Hi <span id="user">${templateData.name}</span>,</p>          
-                  <p style="font-size: 0.95rem;">The First Level GFCF approval for Bot ID <span id="botId">${templateData.botID}</span> with process name <span id="prcoessName">${templateData.processName}</span> is completed. Your final approval is pending.</p>  
+                  <p style="font-size: 0.95rem;">The First Level GFCF approval for Bot ID <span id="botId">${templateData.botExternalId}</span> with process name <span id="prcoessName">${templateData.processName}</span> is completed. Your final approval is pending.</p>  
                   <p>Link to the approval portal: <a href="${config.apporvalPortalLink}">${config.apporvalPortalLink}</a></p>             
                   <p>Regards,<br/>Automation Factory</p>
               </div>       
@@ -606,7 +608,8 @@ const firstLevelApproverTemplate = async (templateData) => {
   return approverTemp;
 };
 
-const getIdeaTemPlate = async (templateObject) => {
+/*
+ const getIdeaTemPlate = async (templateObject) => {
   let templ = `<html lang="en">
   <head>
       <meta charset="UTF-8">
@@ -635,6 +638,123 @@ const getIdeaTemPlate = async (templateObject) => {
   </body>
   </html>`;
   return templ;
+};
+*/
+
+const getIdeaTemPlate = async (templateObject) => {
+  let attachedFileName = path.basename(`${templateObject.ideaData.expectedPDDdocument}`);
+  const userEmailName = (templateObject.name).split(' ');
+  const capitalizedWords = userEmailName.map(word =>
+    word.charAt(0).toUpperCase() + word.slice(1)
+  );
+  const capitalizedString = capitalizedWords.join(' ');
+  console.log('attachedFileName',attachedFileName);
+  console.log('templateObject>>>>',templateObject);
+  console.log('templateObject>>>>',templateObject.name);
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Hi <span id="user">${capitalizedString}</span>, <p></p>
+                  Thank you for reaching out!<br/>
+              </p>
+              <p style="max-width: 30rem; font-size: 0.95rem;">We have received your idea for automation ${templateObject.ideaData.processToBeAutomated != '' ?
+                  `of process <span id="ProcessToBeAutomated">${templateObject.ideaData.processToBeAutomated}</span>,`:''} ${templateObject.ideaData.applicationInvolved != '' ? `application involved are <span id="ApplicationInvolved">${templateObject.ideaData.applicationInvolved}</span>`:''}
+                   with description <span id="DescribeTheProcess">${templateObject.ideaData.describeTheProcess}</span> and expected benefits 
+                   <span id="ExpectedBenefits">${templateObject.ideaData.expectedBenfit}</span>.</p>  
+                   <p style="max-width: 30rem; font-size: 0.95rem;">
+                   <span style="font-weight: bold;">Additional Details</span>: <br/>
+                   <span style="font-weight: bold;">Request Type</span>: <span id="ExpectedRequestType">${templateObject.ideaData.expectedRequestType}</span> <br/>
+                   ${templateObject.ideaData.expectedProcessBotID != '' ? `<span style="font-weight: bold;">Process BOT ID</span>: <span id="ExpectedProcessBotID">${templateObject.ideaData.expectedProcessBotID}</span><br/>`:''}
+		   <span style="font-weight: bold;">Cluster</span>: <span id="expectedCluster">${templateObject.ideaData.expectedCluster}</span> <br/>
+                   <span style="font-weight: bold;">MCO</span>: <span id="expectedMcoType">${
+                  templateObject.ideaData.expectedMcoType}</span> <br/>
+                   <span style="font-weight: bold;">Lead PlatForm</span>: <span id="expectedLeadPlatform">${templateObject.ideaData.expectedLeadPlatform}</span> <br/>
+                   <span style="font-weight: bold;">Area</span>: <span id="expectedAreaType">${templateObject.ideaData.expectedAreaType}</span> <br/>
+                   <span style="font-weight: bold;">Requestor Email</span>: <span id="ExpectedProcessBotID">${templateObject.ideaData.expectedRequestorEmail}</span>
+                   </p>
+                   ${templateObject.ideaData.expectedPDDdocument !='' ? `<p style="max-width: 30rem; font-size: 0.95rem;"> <span style="font-weight: bold;">The Updated PDD Attachment</span> - ${attachedFileName}.  
+                  </p>`:''}                           
+              <p>We will get in touch with you shortly.  </p>
+              <p>
+                  Regards,<br/>
+                  Hyper Automation Platform
+              </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+//checkoutMailer
+
+const CheckoutMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Dear <span id="user">${templateObject.name}</span>, <p></p>
+              <p style="font-size: 0.95rem;"><b> You have added total: </b> <span id="Total Skills">${templateObject.checkoutData.totalSkills} skills</span> 
+<br><span id ="functionSkills"><b>Functional Skills: </b> ${templateObject.checkoutData.functionSkills}</span>
+<br><span id ="softSkills"><b>Soft Skills: </b> ${templateObject.checkoutData.softSkills}</span>
+<br><span id ="softSkills"><b>Total Price: </b> ${templateObject.checkoutData.totalPrice}</span>
+              <br>For more information, please reach out to Hyper automation at @ML_SA_IND_ET_Support
+              </p>        
+              <p>
+                  Regards,<br/>
+                  Automation Factory
+              </p>
+              <p>
+      
+    </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+const CheckoutMail = async (mailData) => {
+  //get user email
+  let email = mailData.user.email;
+  let name = mailData.user.name;
+
+  let toList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
+  toList.push(email)
+
+;
+  let ccList = ["binay.kumar@unilever.com"];
+  ccList.push(config.sendGridFrom);
+  let templateObject = {
+    name: name,
+    checkoutData: mailData.checkoutData,
+    
+  };
+
+  let temp = await CheckoutMailTemplate(templateObject);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(toList, config.sendGridFrom, ccList, 'Checkout Mail', temp);
+  mailResponse = await sendMailSg(msg);
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail
 };
 
 const createBotMailer = async (templateData) => {
@@ -701,6 +821,7 @@ const businessOwnerMailer = async (templateData) => {
   return approverTemplate;
 };
 
+/*
 const submitAnIdeaMailer = async (mailData) => {
   console.log('mail data submit an idea ---', mailData);
   //get user email
@@ -709,7 +830,7 @@ const submitAnIdeaMailer = async (mailData) => {
   let toList = [];
   toList.push(email);
   let ccList = [];
-  // ccList.push(config.ccSendGrid);
+  ccList.push(config.ccSendGrid);
   let templateObject = {
     name: name,
     ideaData: mailData.ideaData,
@@ -736,6 +857,246 @@ const submitAnIdeaMailer = async (mailData) => {
 
   // send mail
 };
+*/
+
+const submitAnIdeaMailer = async (mailData) => {
+  console.log('mail data submit an idea ---', mailData);
+  // Code start for get El Mail 
+  const findEngagementLead = await Submitanideael.findAll({
+    attributes: ['el'],
+    where: {
+      [Op.and]: [
+        { leadPlatform: mailData.ideaData.expectedLeadPlatform },
+        { cluster: mailData.ideaData.expectedCluster },
+      ],
+    },
+  });
+  console.log('findEngagementLead', findEngagementLead);
+  const getElmail = findEngagementLead[0].dataValues.el;
+  const getElmailArray = getElmail.split(',');
+  console.log('getElmail', getElmail);
+  console.log('getElmailArray', getElmailArray);
+  // Code end for get El Mail 
+
+  //get user email
+  let { email, name } = mailData.userData;
+  email.toString();
+  let email1 = mailData.ideaData.expectedRequestorEmail;
+  email1.toString();
+  console.log('email',email);
+  console.log('email1',email1);
+  console.log('mailData.userData',mailData.userData);
+  var toList = [email];
+  if((email1 != email)){
+    toList.push(email1);
+  }
+ 
+  // Code for checking El mail available or not
+  const unileverEmails = getElmailArray.filter(email => email.endsWith('@unilever.com'));
+  console.log('unileverEmails',unileverEmails);
+    // Pushing elements from getElmailArray into toList
+    if(unileverEmails.length != 0){
+      for (const email of unileverEmails) {
+        toList.push(email);
+      }
+    }
+
+  let ccList = [email];
+  // ccList.push(config.ccSendGrid);
+  let templateObject = {
+    name: name,
+    ideaData: mailData.ideaData,
+  };
+  console.log('template object', templateObject);
+
+  let ideaTemplate = await getIdeaTemPlate(templateObject);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+  // Create a new Set to eliminate duplicates
+  const uniqueEmailSet = new Set(toList);
+  // Convert the Set back to an array
+  var toListEmailArray = Array.from(uniqueEmailSet);
+  console.log('toListEmailArray',toListEmailArray);
+  
+  // Create the attachment object
+  const path = require('path');
+  const url = `${mailData.ideaData.expectedPDDdocument}`;
+  var expectedPDDDocFile = `${mailData.ideaData.expectedDocUpdated}`;
+  console.log('expectedPDDDocFile',expectedPDDDocFile);
+
+  if(expectedPDDDocFile == 'Yes'){
+  axios
+  .get(url, { responseType: 'arraybuffer' })
+  .then((response) => {
+    let docFileName = path.basename(url);
+    console.log('docFileName',docFileName);
+    console.log('url',url);
+    const attachment = {
+      content: Buffer.from(response.data).toString('base64'),
+      filename: docFileName,
+      type: '*/*',
+      disposition: 'attachment',
+    };
+  const email1 = {
+    to:toListEmailArray,
+    from: "botstore@unilever.com",
+    subject: "Automation Idea",
+    text: "Submit an Idea",
+    html: ideaTemplate,
+    attachments: [attachment]
+  };
+   sendMailSg(email1)
+   })
+  }
+
+ if(expectedPDDDocFile == 'No'){
+   const email2 = {
+    to:toListEmailArray,
+    from: "botstore@unilever.com",
+    subject: "Automation Idea",
+    text: "Submit an Idea",
+    html: ideaTemplate
+   };
+   sendMailSg(email2)
+ }
+
+  // create template
+  /*let msg = await createMessage(
+    toList,
+    config.sendGridFrom,
+    ccList,
+    'Automation Idea',
+    ideaTemplate
+  );
+  mailResponse = await sendMailSg(msg);
+  // console.log('mail response ---', mailResponse);
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail*/
+};
+
+const costControlMail = async (mailData) => {
+  console.log('feedback--->>>>>>>>>>', mailData);
+  //get user email
+  let { email, name } = mailData.user;
+  console.log('line 1920', email, name);
+
+  let toList = [];
+  toList.push(email);
+  let ccList = [];
+  // ccList.push(config.sendGridFrom);
+  console.log('line 1927', ccList);
+  let templateObject = {
+    name: name,
+    emailData: mailData.emailData,
+    monthName:mailData.monthName,
+    totalRunCost:mailData.totalRunCost,
+    selectedYear:mailData.selectedYear,
+  };
+  console.log('template object lone 2002', templateObject);
+
+  let feedbackTemp = await costControlTemplet(templateObject);
+  console.log('>>>>>>>>>>>>>1933<<<<<<', feedbackTemp);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(
+    toList,
+    config.sendGridFrom,
+    ccList,
+    `Run Cost Details - ${mailData.emailData[0].businessApprover} for ${mailData.monthName}_${mailData.selectedYear}`,
+    feedbackTemp
+  );
+  mailResponse = await sendMailSg(msg);
+  console.log('mail response ---', mailResponse);
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+
+const costControlTemplet = async (templateObject)=>{
+  const userEmailName = templateObject.name.split(' ');
+  const capitalizedWords = userEmailName.map(
+    (word) => word.charAt(0).toUpperCase() + word.slice(1)
+  );
+  const capitalizedString = capitalizedWords.join(' ');
+  console.log('templateObject>>>> line 2032', templateObject);
+  console.log('templateObject>>>> line 2033', templateObject.emailData[0].businessApprover);
+  console.log('templateObject.totalRunCost', templateObject.totalRunCost);
+  let formTable = `
+    <table style="border-collapse: collapse; width: 80%;">
+      <tr>
+        <th style="border: 1px solid #deeaf6; padding: 8px; text-align:left;">Requirement</th>
+        <th style="border: 1px solid #deeaf6; padding: 8px; text-align:left;">Comment</th>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">ET Name</td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.emailData[0].businessApprover}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> Month Of Billing</td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.monthName}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> Business Approver</td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${capitalizedString}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> Cost Center </td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.emailData[0].costCenter}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> To Cost Center </td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.emailData[0].toCostCenter}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> Gl Account</td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.emailData[0].glAccount}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> To Company Code</td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.emailData[0].toCompanyCode}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> Country Code </td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.emailData[0].countryCode}</td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #deeaf6; padding: 8px;"> Total Run-Cost </td>
+        <td style="border: 1px solid #deeaf6; padding: 8px;">${templateObject.totalRunCost}</td>
+      </tr>
+    </table>
+  `;
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: transparent;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p style="max-width: 30rem; font-size: 0.95rem;">Dear Finance Team, </p>
+              <p style="max-width: 30rem; font-size: 0.95rem;">PFA the details of Monthly run-cost for <span style="font-weight:bold;">${templateObject.emailData[0].businessApprover}</span> for the month of  <span style="font-weight:bold;">${templateObject.monthName}</span> </p>
+              <p style="max-width: 30rem; font-size: 0.95rem;">${formTable}</p>
+                                             
+              <p>We will get in touch with you shortly.  </p>
+              <p>
+                  Regards,<br/>
+                  Hyper Automation Platform
+              </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+}
 
 var getUserNameFromEmail = async (email) => {
   console.log('Fetching User Name' + email);
@@ -756,8 +1117,8 @@ var getUserNameFromEmail = async (email) => {
 };
 
 const updateBotMailer = async (mailData) => {
-  var ccList = [];
-  let toList = [];
+//vvvvvv  var ccList = [];
+//vvvvvv  let toList = [];
   let templateData = {};
   var emailTemplate = '';
   var msg = '';
@@ -774,6 +1135,7 @@ const updateBotMailer = async (mailData) => {
     subArea,
     botID,
     processName,
+    botExternalId,
   } = mailData.botData;
   // console.log('mailData' + JSON.stringify(mailData));
   var userType = _.get(mailData, ['userData', 'userType']);
@@ -839,13 +1201,14 @@ const updateBotMailer = async (mailData) => {
       _.set(templateData, ['botID'], botID);
       _.set(templateData, ['processName'], processName);
       _.set(templateData, ['toName'], toName);
+      _.set(templateData, ['botExternalId'], botExternalId)
       console.log(templateData);
       emailTemplate = getMailerTemplate('firstLevelGpmHasApproved', templateData);
       msg = await createMessage(
-        toList,
-        config.sendGridFrom,
+   //vvvv     toList,
+     //vvvvv   config.sendGridFrom,
         ccList,
-        'Final GPM Approval - [' + botID + ']',
+        'Final GPM Approval - [' + botExternalId + ']',
         emailTemplate
       );
       // ccList.push(config.ccSendGrid);
@@ -1061,9 +1424,9 @@ const updateBotMailer = async (mailData) => {
         .then(async (fromResolve) => {
           console.log('Received resolve from htmlToPdf' + JSON.stringify(fromResolve));
           var msg = await createMessage(
-            toList,
-            config.sendGridFrom,
-            ccList,
+         //vvvvvv   toList,
+        //vvvvvv    config.sendGridFrom,
+        //vvvvvv    ccList,
             '[' + botID + '] - GFCF Review Complete',
             emailTemplate,
             'GFCF Approval' + data.botId + '.pdf',
@@ -1140,12 +1503,13 @@ const updateBotMailer = async (mailData) => {
       _.set(templateData, ['botID'], botID);
       _.set(templateData, ['processName'], processName);
       _.set(templateData, ['name'], toName);
+      _.set(templateData, ['botExternalId'], botExternalId)
       emailTemplate = getMailerTemplate('firstGfcfHasApproved', templateData);
       msg = await createMessage(
         toList,
-        config.sendGridFrom,
+     //vvvvvv   config.sendGridFrom,
         ccList,
-        'Final GFCF Approval - [' + botID + ']',
+        'Final GFCF Approval - [' + botExternalId + ']',
         emailTemplate
       );
       mailResponse = await sendMailSg(msg);
@@ -1232,8 +1596,8 @@ const updateBotMailer = async (mailData) => {
 };
 
 const createApproveBotMailer = async (mailData) => {
-  let ccList = [];
-  let toList = [];
+//vvvvvv  let ccList = [];
+//vvvvvv  let toList = [];
   let templateData = {};
 
   console.log('Mail data  ---', mailData);
@@ -1268,7 +1632,7 @@ const createApproveBotMailer = async (mailData) => {
     if (businessOwnerEmailID && businessOwnerEmailID.includes('@unilever.com')) {
       toList.push(businessOwnerEmailID);
     }
-    console.log('cc list ', ccList);
+   // console.log('cc list ', ccList);
     console.log(
       kfa,
       area,
@@ -1382,8 +1746,8 @@ const createApproveBotMailer = async (mailData) => {
         ccList.push(adminList[i].dataValues.email);
       }
     }
-    console.log('cc list', ccList);
-    console.log('to list ---', toList);
+   // console.log('cc list', ccList);
+  //  console.log('to list ---', toList);
   }
 
   var businessOwnerEmail = _.get(mailData, ['botData', 'businessOwnerEmailID'], '');
@@ -1411,17 +1775,1236 @@ const createApproveBotMailer = async (mailData) => {
   //toList = ['sanjay.sharma@unilever.com'];
   let msg = await createMessage(
     toList,
-    config.sendGridFrom,
-    ccList,
+ //vvvvvv   config.sendGridFrom,
+ //vvvv   ccList,
     `New Bot Approval - ${templateData.botID}`,
     getTempl
   );
-  console.log('Sending create bot email' + JSON.stringify(msg));
+ //vvvv console.log('Sending create bot email' + JSON.stringify(msg));
   mailResponse = await sendMailSg(msg);
-  console.log('mail response ---', mailResponse);
+//vvvvv  console.log('mail response ---', mailResponse);
   // send mail
   return true;
 };
+
+////devops mailer template
+const createDevopsmailer=async (templateData)=>{
+  let errorApiTemplate = `<html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Document</title>
+      </head>
+      <body>
+          <section id="containt" style="background-color: #8ab4df;">     
+              <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500;">
+                  <p>Hi ${templateData.createdBy},<br/>                   
+                  </p>
+                  <p style="font-size: 0.95rem;"> A new bot entry with Bot ID  <span id="botId">${templateData.botExternalId}</span> <br> Process Name: <span id="prcoessName">${templateData.processName}</span><br>Request Type:<span id="requestType">${templateData.requestType}</span><br>engagementLead :<span id="engagementLead">${templateData.engagementLead}</span><br>cluster:<span id="cluster">${templateData.cluster}</span><br>Country :<span id="Country">${templateData.country}</span><br>mco :<span id="mco">${templateData.mco}</span><br>status :<span id="status">${templateData.status}</span><br> leadPlatform :<span id="leadPlatform">${templateData.leadPlatform}</span><br> technology :<span id="technology">${templateData.technology}</span></span><br> kfa :<span id="kfa">${templateData.kfa}</span> <br><span> is created in Automation Portal</span>.
+                  <br/>
+                  
+  
+                 
+                  </p>
+                  </p>
+  
+                  <p>
+                  <p style="max-width: 30rem; font-size: 0.95rem;">Please reach out the botstore page .</p>
+  
+                      Regards,<br/>
+                      Automation Factory
+                  </p>
+              </div>       
+          </section>
+      </body>
+      </html>`;
+    return errorApiTemplate;
+  };
+  
+  
+  
+  
+  
+  //devops api error handling
+  
+  const devopsMailer= async (mailData)=>{
+ //vvvvvv   let ccList = [];
+ //vvvvvv   let toList = ["ulaf.support@mindtree.com"];
+    let templateData={};
+  
+    console.log('devopsApiError==',mailData)
+  
+  if (mailData.type=='DEVOPSAPIERROR'){
+    templateData.type='errorApiTemplate';
+    let {
+      botID,
+      processName,
+      requestType,
+      engagementLead,
+      cluster,
+      country,
+      mco,
+      leadPlatform,
+      status,
+      technology,
+      kfa,
+      botExternalId,
+      createdBy,
+    }= mailData.botData;
+    templateData.botID =botID;
+    templateData.processName = processName;
+    templateData.engagementLead =engagementLead;
+    templateData.cluster = cluster;
+    templateData.country = country;
+    templateData.mco = mco;
+    templateData.leadPlatform= leadPlatform;
+    templateData.status= status;
+    templateData.technology= technology;
+    templateData.kfa= kfa;
+    templateData.requestType= requestType;
+    templateData.botExternalId= botExternalId;
+    templateData.createdBy = createdBy;
+  
+  
+  
+  }
+  console.log("sdjfadsjf",templateData.engagementLead,"vineethtemplate")
+  var getDevopsTemplate=await createDevopsmailer(templateData);
+  console.log(getDevopsTemplate,"getDevopsTemplate==")
+  
+///el lead push to cclist
+ccList.push(templateData.engagementLead);
+
+  let msg = await createMessage(
+    toList,
+  //vvvvvv  config.sendGridFrom,
+    ccList,
+    `Api Failed to create New WorkItem in DEVOPS- ${templateData.botExternalId}`,
+    getDevopsTemplate
+  );
+  console.log('sending Api error handling message', + JSON.stringify(msg))
+  mailResponse = await sendMailSg(msg);
+  console.log('mail response ---', mailResponse);
+  return true;
+  
+  }
+
+const feedbackTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Hi <span id="user">${templateObject.name}</span>, <p></p>
+                Thank you so much for your amazing review! 
+                We are so happy to hear that you are enjoying Automation. 
+                Please let us know if we can help you with anything further, 
+                and thank you for taking time out of your day to leave us this super kind review.
+              </p>         
+              <p>
+                  Regards,<br/>
+                  Automation Factory
+              </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+const feedbackMail = async (mailData) => {
+  console.log('feedback--->>>>>>>>>>', mailData);
+  //get user email
+  let { email, name } = mailData.user;
+  console.log("line 1920",email,name);
+
+  let toList = [];
+  toList.push(email);
+  let ccList = [];
+  // ccList.push(config.sendGridFrom);
+  console.log("line 1927",ccList);
+  let templateObject = {
+    name: name,
+    feedData: mailData.feedData,
+  };
+  console.log('template object', templateObject);
+
+  let feedbackTemp = await feedbackTemplate(templateObject);
+  console.log(">>>>>>>>>>>>>1933<<<<<<", feedbackTemp)
+//vvvvvv  console.log('to list ', toList);
+//vvvvvv  console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(
+    toList,
+   'botstore@unilever.com',
+    ccList,
+    'Automation Feedback',
+    feedbackTemp
+  );
+  mailResponse = await sendMailSg(msg);
+  console.log('mail response ---', mailResponse);
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+
+////random mail
+const randomMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+<head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Dear<span id="user">${templateObject.name}</span>, 
+              <p>
+              Thank you for your interest in experiencing Employee Twin. 
+              Allow us to introduce Chloe, our very own prototype digital twin. 
+              Please refer to the attached installation guide to begin using Chloe.
+              </p>
+              <p>
+              Credentials:
+              <br>
+              User : employeetwin2@73d62k.onmicrosoft.com
+              <br>
+              Password : EmployeeT@123
+              </p>
+              </p>
+<p>
+<a href="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/employeetwin/Experience%20ET%20with%20Chloe.docx">Click here to download ET Expperience Document</a>
+</p>         
+              <p>
+                  Regards,<br/>
+                  Automation Factory
+              </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+const randomMail = async (mailData) => {
+  console.log('randomMail--->>>>>>>>>>', mailData);
+  //get user email
+  let { email, name } = mailData.user;
+  console.log("line 1920",email,name);
+
+  let toList = [];
+  toList.push(email);
+  let ccList = [];
+  ccList.push(config.sendGridFrom)
+  let templateObject = {
+    name: name,
+    randomData: mailData.randomData,
+  };
+  console.log('template object', templateObject);
+
+  let randomMailTemp = await randomMailTemplate(templateObject);
+  console.log(">>>>>>>>>>>>>1933<<<<<<", randomMailTemp)
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(
+    toList,
+  'botstore@unilever.com',
+    ccList,
+    'Automation Random Mail & Password',
+    randomMailTemp
+  );
+  mailResponse = await sendMailSg(msg);
+  console.log('mail response ---', mailResponse);
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+
+//order Mail API
+const orderMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Dear <span id="user">${templateObject.name}</span>, <p></p>
+              <p style="font-size: 0.95rem;"> Thank you for your purchase with us under <span id="OrderID">${templateObject.randomData.orderID}</span> 
+              <br>Your Employee Twin “Mimi” is now ready to use, please follow the attached instruction to start using it today!
+              <br>For more information, please reach out to Hyper automation Employee Twin team at <a href="ml_sa_ind_et_support@unilever.com">@ML_SA_IND_ET_Support</a>
+              </p>
+<p>
+<a href="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/botDocuments/User%20Manual.docx">Click here to download the attached document</a>
+</p>
+              <p>
+                  Regards,<br/>
+                  Automation Factory
+              </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+const orderMail = async (mailData) => {
+  //get user email
+  let email = mailData.user.email;
+  let name = mailData.user.name;
+
+  let toList = ["anshu.rani@unilever.com","binay.kumar@unilever.com"];
+  toList.push(email);
+  let ccList = [];
+  ccList.push(config.sendGridFrom);
+  let templateObject = {
+    name: name,
+    randomData: mailData.randomData,
+    
+  };
+
+  let temp = await orderMailTemplate(templateObject);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(toList, config.sendGridFrom, ccList, `Your Digital Twin is ready! - ${templateObject.randomData.orderID} `, temp);
+  mailResponse = await sendMailSg(msg);
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+
+///////////skill mail API/////////
+{/*const DeleteSkillMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Dear <span id="user">${templateObject.name}</span>, <p></p>
+ <p style="font-size: 0.95rem;">Deleted a skill: <span id="Total Skills"><b>${templateObject.deleteskillData.skillName}</b></span> 
+              <br><span id ="skilltype">Skill Type: <b>${templateObject.deleteskillData.skilltype}</b></span>
+              <br><span id ="RunCostPerHit_Hour">Total No. of Hits <b>${templateObject.deleteskillData.RunCostPerHit_Hour}</b></span>
+              <br><span id ="email">and it is deleted by <b>${templateObject.deleteskillData.email}</b></span>               
+              <br>For more information, please reach out to Hyper automation at @ML_SA_IND_ET_Support
+              </p>                  
+              <p>
+                  Regards,<br/>
+                  Automation Factory
+              </p>
+              <p>
+      
+    </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};*/}
+const DeleteSkillMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Hi <span id="user">${templateObject.name}</span>, <p></p>
+              <p style="font-size: 0.95rem;"> You just deleted <span id="Total Skills">${templateObject.deleteskillData.skillName} to ${templateObject.deleteskillData.empid}. The skill will be removed from ${templateObject.deleteskillData.empid} immediately. </span> 
+              
+             </p>        
+              <p>
+                  Regards,<br/>
+                  <img src="https://automation.unilever.com/sites/default/files/2023-04/HAP_Logo_White_Transparent_BG_Horizontal_SVG.png"
+ style="background-color:#1f36c7;height:auto;width:40%"/>
+                  <br>
+                  <p>Automation.Factory@unilever.com</p><br>
+                  <a href="https://automation.unilever.com/">https://automation.unilever.com/</a>
+              </p>
+              <p>
+      
+    </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+const DeleteSkillMailTemplate1 = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Hi HAP team <br>
+              <span id="user">${templateObject.name}</span>, just deleted <span id="Total Skills">${templateObject.deleteskillData.skillName} from ${templateObject.deleteskillData.empid}. Please take action! </span> 
+              
+             </p>        
+               <p>
+                  Regards,<br/>
+      <img src="https://automation.unilever.com/sites/default/files/2023-04/HAP_Logo_White_Transparent_BG_Horizontal_SVG.png"
+style="background-color:#1f36c7;height:auto;width:40%"/>
+                  <br>
+                  <p>Automation.Factory@unilever.com</p><br>
+                  <a href="https://automation.unilever.com/">https://automation.unilever.com/</a>
+              </p>
+
+              <p>
+      
+    </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+const deleteSkillMail = async (mailData) => {
+  //get user email
+  let email = mailData.user.email;
+  let name = mailData.user.name;
+
+  let toList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
+  let toList1 = ["veshaly.varshney@unilever.com", "binay.kumar@unilever.com"]; 
+ toList1.push(email)
+;
+  let ccList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
+  ccList.push(config.sendGridFrom);
+  let templateObject = {
+    name: name,
+    deleteskillData: mailData.deleteskillData,
+    
+  };
+
+  let temp = await DeleteSkillMailTemplate(templateObject);
+ let temp1 = await DeleteSkillMailTemplate1(templateObject);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+  //let msg = await createMessage(toList, config.sendGridFrom, ccList, 'Delete Skill Mail', temp);
+ let msg = await createMessage(toList1, config.sendGridFrom, ccList, `Oops! You just deleted ${templateObject.deleteskillData.skillName} from ${templateObject.deleteskillData.empid} !`, temp);
+  let msg1 = await createMessage(toList, config.sendGridFrom,ccList,  `${templateObject.name} just deleted ${templateObject.deleteskillData.skillName} from ${templateObject.deleteskillData.empid}`, temp1);
+    
+mailResponse = await sendMailSg(msg);
+mailResponse = await sendMailSg(msg1);  
+// create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+{/*
+const addSkillMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Dear <span id="user">${templateObject.name}</span>, <p></p>
+               <p style="font-size: 0.95rem;">Added a skill: <span id="Total Skills"><b>${templateObject.addSkillData.skillName}</b></span> 
+              <br><span id ="skilltype">Skill Type: <b>${templateObject.addSkillData.skilltype}</b></span>
+              <br><span id ="RunCostPerHit_Hour">Total No. of Hits <b>${templateObject.addSkillData.RunCostPerHit_Hour}</b></span>
+              <br><span id ="email">and it is added by <b>${templateObject.addSkillData.email}</b></span>               
+              <br>For more information, please reach out to Hyper automation at @ML_SA_IND_ET_Support
+              </p>    
+              
+              <p>
+                  Regards,<br/>
+                  Automation Factory
+              </p>
+              <p>
+      
+    </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};*/}
+const addSkillMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Hi <span id="user">${templateObject.name}</span>, <p></p>
+              <p style="font-size: 0.95rem;"> You just added <span id="Total Skills">${templateObject.addSkillData.skillName} to ${templateObject.addSkillData.empid}. The skill will reflect on ${templateObject.addSkillData.empid} within in a week. </span> 
+              
+             </p>        
+              <p>
+                  Regards,<br/>
+                  <img src="https://automation.unilever.com/sites/default/files/2023-04/HAP_Logo_White_Transparent_BG_Horizontal_SVG.png"/>
+                  <br>
+                  <p>Automation.Factory@unilever.com</p><br>
+                  <a href="https://automation.unilever.com/">https://automation.unilever.com/</a>
+              </p>
+              <p>
+      
+    </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+const addSkillMailTemplate1 = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Hi HAP team <br>
+              <span id="user">${templateObject.name}</span>, just added  <span id="Total Skills">${templateObject.addSkillData.skillName} to ${templateObject.addSkillData.empid}. Please take action! </span> 
+              
+             </p>        
+              <p>
+                  Regards,<br/>
+                  <img src="https://automation.unilever.com/sites/default/files/2023-04/HAP_Logo_White_Transparent_BG_Horizontal_SVG.png"/>
+                  <br>
+                  <p>Automation.Factory@unilever.com</p><br>
+                  <a href="https://automation.unilever.com/">https://automation.unilever.com/</a>
+              </p>
+              <p>
+      
+    </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+const addSkillMail = async (mailData) => {
+  //get user email
+  let email = mailData.user.email;
+  let name = mailData.user.name;
+  let toList = [ "Abhishek.U@unilever.com","madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
+  let toList1 = ["veshaly.varshney@unilever.com", "binay.kumar@unilever.com"];
+ toList1.push(email)
+
+;
+ let ccList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
+  ccList.push(config.sendGridFrom);
+
+  let templateObject = {
+    name: name,
+    addSkillData: mailData.addSkillData,
+    
+  };
+
+  let temp = await addSkillMailTemplate(templateObject);
+   let temp1 = await addSkillMailTemplate1(templateObject);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+ // let msg = await createMessage(toList, config.sendGridFrom, ccList, 'Add Skill Mail', temp);
+  let msg = await createMessage(toList1, config.sendGridFrom, ccList, `Yay! You just added ${templateObject.addSkillData.skillName} to ${templateObject.addSkillData.empid} !`, temp);
+  let msg1 = await createMessage(toList, config.sendGridFrom, ccList, `${templateObject.name} just added ${templateObject.addSkillData.skillName} to ${templateObject.addSkillData.empid}`, temp1);
+    
+mailResponse = await sendMailSg(msg);
+ mailResponse = await sendMailSg(msg1);  
+// create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+
+//pinnterest model mail
+const buyNowMailTemplate = async (templateObject) => {
+  
+  const productData = templateObject.responseDetails?.legend || templateObject.responseDetails?.pro
+
+  var jsonString = JSON.stringify(productData);
+  var encodedPackageString = encodeURIComponent(jsonString);
+
+
+  const productType =
+    templateObject.responseDetails.name == `${templateObject.buyNowData.product_title} Pro`
+      ? 'Pro'
+      : 'Legend';
+
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+      <style>
+      .card-container {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        width: 305px;
+        height: 365px;
+        background-color: #f5f5f5;
+        position: relative;
+      }
+
+      .text-container {
+        background-color: #ffffff;
+        border-bottom-left-radius: 13px;
+        border-bottom-right-radius: 13px;
+        width: 266px;
+      }
+      .uper-text {
+        font-weight: bolder;
+        font-size: 20px;
+        text-align: left;40
+        margin-left: 10px;
+        padding-top: 20px;
+        color: #000000;
+      }
+      .lower-text {
+        color: #b1b1b1;
+        font-weight: bold;
+        text-align: left;
+        margin-left: 10px;
+        margin-top: -10px;
+      }
+      .inner-card-container {
+        margin: 0px 27px;
+      }
+      /* .pin{
+                height: 30px;
+                width: 30px;
+                background-color: red;
+            } */
+
+      .image {
+        margin-bottom: -24px;
+        border-top-left-radius: 13px;
+        border-top-right-radius: 13px;
+      }
+      .pinlogo {
+        width: 45px;
+        border-radius: 25px;
+        cursor: pointer !important;
+        float: right !important;
+    margin-top: 15%  !important;
+      }
+      .upperlogopin {
+        position: absolute;
+        top: 6%;
+        right: 6%;
+        z-index: 999;
+        
+      }
+      a {
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Hi <span id="user">${templateObject.user.name}</span>,
+              <br/>
+              <p style="font-size: 0.95rem;">
+              Cheers! We are thrilled to inform you that you have successfully taken the first step towards the purchase of the  ${productType} package of ${productData.name}! 
+              </p>
+              <div class="card-container">
+             <div class="upperlogopin">
+        
+      </div>
+      <div class="inner-card-container1">
+        <div class="inner-card-container">
+          <a href="https://automation.unilever.com/product_details/${templateObject.buyNowData.product_url}?id=${templateObject.buyNowData.product_id}&function=${templateObject.buyNowData.catalog_products}&product_name=${templateObject.buyNowData.product_title}&tagline=${templateObject.buyNowData.tagline}&video=${templateObject.buyNowData.product_video}&packages=${encodedPackageString}">
+            <img src="${templateObject.buyNowData.product_images}" class="image" width="266px" height="170px"
+          /></a>
+
+          <div class="text-container">
+            <p class="uper-text">${templateObject.buyNowData.product_title}</p>
+            <p class="lower-text">
+            ${templateObject.buyNowData.product_description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+              <p>Here are the details of your purchase </p>
+              <br/>
+              <ul style="list-style-type: none">
+                <li>Product Name : ${productData.name}</li>
+                <li>Package Selected : ${productType}</li>
+                <li>Implementation Cost : <span style="color: ${productData.priceTextColor}">€${productData.price}K</span></li>
+                <li>Run Cost : ${productData.yearOnYear}</li>
+              </ul>   
+              <p style="font-size: 0.95rem;">
+                In case of any concerns or queries, write to us at mailto:hap@unilever.com.
+              </p>
+              <p>
+              Thankyou for choosing the ${productType} package of ${productData.name}. We look forward to a successful partnership as you implement this powerful solution. </p>
+ <p>
+    Regards,<br>
+    <img src="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/logo/HAP_Logo_Blue_Transparent_BG_Horizontal_SVG.png"style="height:auto;width:auto"/>
+    <br>
+    <a href="hap@unilever.com" style="height:auto">hap@unilever.com</a><br/>
+    <a href="https://automation.unilever.com/" style="height:auto">https://automation.unilever.com/</a>
+</p>
+           </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+const HAPbuyNowMailTemplate = async (templateObject) => {
+  console.log('2168>>>>HAOPbuyNowMailTemplate');
+  const productType =
+    templateObject.responseDetails.product_title == `${templateObject.buyNowData.product_title} Pro`
+      ? 'Pro'
+      : 'Legend';
+
+  const productData = templateObject.responseDetails?.legend || templateObject.responseDetails?.pro
+
+  var jsonString = JSON.stringify(productData);
+  var encodedPackageString = encodeURIComponent(jsonString);
+
+  let templates = [];
+
+  for (const value of templateObject.toHAPList) {
+    let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p><strong>Hi <span id="user">${value.email},</strong></span>
+              <br/>
+              <p style="font-size: 0.95rem;">
+                ${productData.name} was purchased by ${templateObject.user.name}. 
+              </p>
+              <div >
+<a href="https://automation.unilever.com/product_details/${templateObject.buyNowData.product_url}?id=${templateObject.buyNowData.product_id}&function=${templateObject.buyNowData.catalog_products}&product_name=${templateObject.buyNowData.product_title}&tagline=${templateObject.buyNowData.tagline}&video=${templateObject.buyNowData.product_video}&packages=${encodedPackageString}"> <img src="${templateObject.buyNowData.product_images}" /></a>.
+              </div>
+              <p>Please find your purchase details below: </p>
+              <br/>
+              <ul style="list-style-type: none">
+                <li>User Name : ${templateObject.user.name}</li>
+                <li>Email ID : ${templateObject.user.email}</li>
+                <li>Product Name : ${productData.name}</li>
+                <li>Package Selected : ${productType}</li>
+                <li>Implementation Cost : <span style="color: ${productData.priceTextColor}">€${productData.price}K</span> </li>
+              </ul>   
+              <p style="font-size: 0.95rem;">
+                Please reach out to the ${templateObject.user.name} immediately. .
+              </p>
+ <p>
+    Regards,<br>
+    <img src="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/logo/HAP_Logo_Blue_Transparent_BG_Horizontal_SVG.png"style="height:auto;width:auto"/>
+    <br>
+    <a href="hap@unilever.com" style="height:auto">hap@unilever.com</a><br/>
+    <a href="https://automation.unilever.com/" style="height:auto">https://automation.unilever.com/</a>
+</p>
+           </p>
+           </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+    templates.push(templ);
+  }
+  return templates;
+};
+
+const buyNowMail = async (mailData) => {
+  //get user email
+  let email = mailData.user.email;
+  let name = mailData.user.name;
+
+  let toList = [];
+  toList.push(email);
+
+  let toHAPList = [];
+  toHAPList.push({
+    // name: "Veshaly varshney",
+    // email: "mailto:veshaly.varshney@unilever.com"
+    email: 'hap@unilever.com',
+  });
+
+  let HAPemail = toHAPList.map((HAPitem) => HAPitem.email);
+
+  const { list, ...items } = mailData.responseDetails;
+
+  
+
+  let ccList = [];
+  //mailto:cclist.push('hap@unilever.com');
+
+  let templateObject = {
+    user: mailData.user,
+    buyNowData: mailData.buyNowData,
+    responseDetails: mailData.responseDetails,
+    list: list,
+    toHAPList: toHAPList,
+  };
+
+  let temp = await buyNowMailTemplate(templateObject);
+
+  let HAPtemp = await HAPbuyNowMailTemplate(templateObject);
+
+  //console.log('to list ', toList);
+  //console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(
+    toList,
+    'hap@unilever.com',
+    ccList,
+    `Hi ${name}, ${mailData.responseDetails.legend?.name || mailData.responseDetails.pro?.name} purchase is successful!`,
+    temp
+  );
+  mailResponse = await sendMailSg(msg);
+
+  for (const template of HAPtemp) {
+    let HAPmsg = await createMessage(
+      HAPemail,
+      'hap@unilever.com',
+      ccList,
+      `New purchase of ${mailData.responseDetails.legend?.name || mailData.responseDetails.pro?.name} made by ${name}!`,
+      template
+    );
+    mailResponse = await sendMailSg(HAPmsg);
+    //console.log(template);
+  }
+
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+const pinMailTemplate = async (templateObject) => {
+
+  var jsonString = JSON.stringify(templateObject.responsePackage);
+  var encodedPackageString = encodeURIComponent(jsonString);
+
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+      <style>
+      .card-container {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        width: 305px;
+        height: 365px;
+        background-color: #f5f5f5;
+        position: relative;
+      }
+
+      .text-container {
+        background-color: #ffffff;
+        border-bottom-left-radius: 13px;
+        border-bottom-right-radius: 13px;
+        width: 266px;
+      }
+      .uper-text {
+        font-weight: bolder;
+        font-size: 20px;
+        text-align: left;
+        margin-left: 10px;
+        padding-top: 20px;
+        color: #000000;
+      }
+      .lower-text {
+        color: #b1b1b1;
+        font-weight: bold;
+        text-align: left;
+        margin-left: 10px;
+        margin-top: -10px;
+      }
+      .inner-card-container {
+        margin: 0px 27px;
+      }
+      /* .pin{
+                height: 30px;
+                width: 30px;
+                background-color: red;
+            } */
+
+      .image {
+        margin-bottom: -24px;
+        border-top-left-radius: 13px;
+        border-top-right-radius: 13px;
+      }
+      .pinlogo {
+        width: 45px;
+        border-radius: 25px;
+        cursor: pointer !important;
+        float: right !important;
+    margin-top: 15%  !important;
+      }
+      .upperlogopin {
+        position: absolute;
+        top: 6%;
+        right: 6%;
+        z-index: 999;
+        
+      }
+      a {
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>
+              <div id="user">
+                Dear ${templateObject.tosentmailUsername},
+              </div>
+              <p style="font-size: 0.95rem;">We are excited to inform that 
+              ${templateObject.user.name} has just pinned an exciting product,
+                ${templateObject.pinData.product_title} to your HAP Profile.
+                ${templateObject.message ? `<p style= "font-size: 0.95rem;"><b>${templateObject.message}</b></p>` : ""} This new addition brings your total pins to ${templateObject.userPins} pins.
+                You can check out this pin by visiting <a href = "https://automation.unilever.com/products/${templateObject.tosentmail}&showMyOtherPins=true">profile page</a>
+              </p>
+              <div class="card-container">
+             <div class="upperlogopin">
+        
+      </div>
+      <div class="inner-card-container1">
+        <div class="inner-card-container">
+          <a href="https://automation.unilever.com/product_details/${templateObject.pinData.product_url}?id=${templateObject.pinData.product_id}&function=${templateObject.pinData.catalog_products}&product_name=${templateObject.pinData.product_title}&tagline=${templateObject.pinData.tagline}&video=${templateObject.pinData.product_video}&packages=${encodedPackageString}">
+            <img src="${templateObject.pinData.product_images}" class="image" width="266px" height="170px"
+          /></a>
+
+          <div class="text-container">
+            <p class="uper-text">${templateObject.pinData.product_title}</p>
+            <p class="lower-text">
+            ${templateObject.pinData.product_description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+              
+              <p style ="font-size: 0.95rem;">
+              Your pinned products are open for all to view. You can further pin this product to relevant people within Unilever who you might want to initiate a discussion with, or functional/tech/business SMEs, 
+              or decision makers looking for tech capabilities to transform their area. It is as easy as just pinning the product using the pin on your personal page & it would add this pin to their personal automation page.  
+              </p>
+              <p>Thankyou for being part of our vibrant network! </p>
+ <p>
+    Regards,<br>
+    <img src="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/logo/HAP_Logo_Blue_Transparent_BG_Horizontal_SVG.png"style="height:auto;width:auto"/>
+    <br>
+    <a href="hap@unilever.com" style="height:auto">hap@unilever.com</a><br/>
+    <a href="https://automation.unilever.com/" style="height:auto">https://automation.unilever.com/</a>
+</p>
+                  
+              </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+
+  return templ;
+};
+const pinMail = async (mailData) => {
+  // get user email
+  let email = mailData.user.email;
+
+  let toList = [];
+
+  let ccList = [email];
+  ccList.push('hap@unilever.com');
+
+  let pinPromises = []; // Store promises for sending emails
+
+  toList.push(mailData.targetUser.email);
+  // Create a template object for each recipient
+  let templateObject = {
+    user: mailData.user,
+    pinData: mailData.pinData,
+    tosentmail: mailData.targetUser.email, // Set the recipient's email
+    tosentmailUsername: mailData.targetUser.name,
+    userPins: mailData.userPins,
+    message: mailData.message,
+    responsePackage : mailData.responsePackage
+  };
+
+  let temp = await pinMailTemplate(templateObject);
+
+  // Create the message for each recipient
+  let msg = await createMessage(
+    [mailData.targetUser.email], // Send to the current recipient
+    'hap@unilever.com',
+    ccList,
+    `Hey ${mailData.targetUser.name}, ${mailData.pinData.product_title} has been pinned on your HAP website!`,
+    temp
+  );
+
+  // Store the promise for sending the email
+  pinPromises.push(sendMailSg(msg));
+
+  // Wait for all emails to be sent
+  await Promise.all(pinPromises);
+
+  // All emails have been sent
+  return true;
+};
+
+const ShareMailTemplate = async (templateObject) => {
+
+
+  var jsonString = JSON.stringify(templateObject.responsePackage);
+  var encodedPackageString = encodeURIComponent(jsonString);
+
+  const shareEmails = Array.isArray(templateObject.shareEmail)
+    ? templateObject.shareEmail
+    : [templateObject.shareEmail];
+  const templates = [];
+  for (const shareEmail of shareEmails) {
+     for(const subArray of templateObject.user){
+
+      for(const value of subArray){
+
+    let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+      <style>
+      .card-container {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        width: 305px;
+        height: 365px;
+        background-color: #f5f5f5;
+        position: relative;
+      }
+
+      .text-container {
+        background-color: #ffffff;
+        border-bottom-left-radius: 13px;
+        border-bottom-right-radius: 13px;
+        width: 266px;
+      }
+      .uper-text {
+        font-weight: bolder;
+        font-size: 20px;
+        text-align: left;
+        margin-left: 10px;
+        padding-top: 20px;
+        color: #000000;
+      }
+      .lower-text {
+        color: #b1b1b1;
+        font-weight: bold;
+        text-align: left;
+        margin-left: 10px;
+        margin-top: -10px;
+      }
+      .inner-card-container {
+        margin: 87px 27px;
+        display:grid
+      }
+      /* .pin{
+                height: 30px;
+                width: 30px;
+                background-color: red;
+            } */
+
+      .image {
+        margin-bottom: -24px;
+        border-top-left-radius: 13px;
+        border-top-right-radius: 13px;
+        height:170px;
+      }
+      .pinlogo {
+        width: 45px;
+        border-radius: 25px;
+        top: 0;
+        right: 20px;
+        float: right;
+        position: relative;
+        transform: translate(-23px, 13px);
+      }
+      .upperlogopin {
+        position: relative !important;
+        top: 6%;
+        right: 6%;
+        z-index: 999;
+        
+      }
+      a {
+        text-decoration: none;
+    height: 170px;
+    display: block;
+      }
+    </style>
+  </head>
+  <body>
+
+  <section id="containt" style="background-color: #deeaf6;">     
+  <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+      <p>
+      <div id="user">
+        Dear ${value.name},
+      </div>
+      <p style="font-size: 0.95rem;">We have some exciting news for you! 
+      ${templateObject.sender.name} has shared a remarkable product,
+        ${templateObject.shareData.product_title} that he/she believe you will find intriguing.
+        ${templateObject.message ? `<p style= "font-size: 0.95rem;"><b>${templateObject.message}</b></p>` : ""}
+        You can check out this product by clicking on the following link:
+      </p>
+      <div class="card-container">
+     <div class="upperlogopin">
+     
+     <div class="inner-card-container1">
+     
+     <div class="inner-card-container">
+     <a href="https://automation.unilever.com/product_details/${templateObject.shareData.product_url}?id=${templateObject.shareData.product_id}&function=${templateObject.shareData.catalog_products}&product_name=${templateObject.shareData.product_title}&tagline=${templateObject.shareData.tagline}&video=${templateObject.shareData.product_video}&packages=${encodedPackageString}">
+     <img src="${templateObject.shareData.product_images}" class="image" width="266px" height="170px"/></a>
+    
+    
+
+  <div class="text-container">
+    <p class="uper-text">${templateObject.shareData.product_title}</p>
+    <p class="lower-text">
+    ${templateObject.shareData.product_description}
+    </p>
+  </div>
+  </div>
+</div>
+</div>
+</div>
+      
+      <p style ="font-size: 0.95rem;">
+      This product is shared through private message, ensuring that your interactions remain confidential. 
+      You have the option to pin or share this product with relevant individuals withing Unilever network who you 
+      might want to initiate a discussion with, or functional/tech/business SMEs, or decision makers looking 
+      for tech capabilities to transform their area. 
+      </p>
+      <p>Thankyou for being part of our exclusive network! </p>
+ <p>
+    Regards,<br>
+    <img src="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/logo/HAP_Logo_Blue_Transparent_BG_Horizontal_SVG.png"style="height:auto;width:auto"/>
+    <br>
+    <a href="hap@unilever.com" style="height:auto">hap@unilever.com</a><br/>
+    <a href="https://automation.unilever.com/" style="height:auto">https://automation.unilever.com/</a>
+</p>          
+      </p>
+  </div>      
+</section>
+  </body>
+  </html>`;
+    templates.push(templ);
+  }
+     }
+   }
+
+  return templates;
+};
+
+const shareMail = async (mailData) => {
+  // get user email and name
+  let toList = [];
+
+  for (const subArray of mailData.user) {
+    for (const value of subArray) {
+      toList.push(value.email);
+   
+
+  let ccList = [mailData.sender.email];
+
+  ccList.push('hap@unilever.com');
+
+  let templateObjects = {
+    shareEmails: mailData.shareEmail, // Extract email addresses
+    user: mailData.user,
+    sender: mailData.sender,
+    shareData: mailData.shareData,
+    message: mailData.message,
+    responsePackage : mailData.responsePackage
+  };
+
+  let templates = await ShareMailTemplate(templateObjects);
+
+  // create the email message
+  for (const template of templates) {
+    let msg = await createMessage(
+      toList,
+      'hap@unilever.com',
+      ccList,
+      `${value.name} thinks you will be interested in ${mailData.shareData.product_title}`,
+      template
+    );
+
+    console.log(template);
+
+    // send the email
+    mailResponse = await sendMailSg(msg);
+  }
+}
+}
+
+  return true;
+};
+
 
 export default {
   createMailerThroughFile,
@@ -1433,4 +3016,17 @@ export default {
   exportMailerData,
   submitAnIdeaMailer,
   updateBotMailer,
+  devopsMailer,
+  feedbackMail,
+  randomMail,
+//ordermail API
+orderMail,
+CheckoutMail,
+deleteSkillMail,
+  addSkillMail,
+buyNowMail,
+  pinMail,
+  shareMail,
+  costControlMail,
 };
+

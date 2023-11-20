@@ -54,6 +54,7 @@
     "mysql2": "^2.2.5",
     "pdf-creator-node": "^2.2.2",
     "pdf-puppeteer": "^1.1.10",
+    "pdfkit": "^0.13.0",
     "puppeteer": "^10.1.0",
     "sequelize": "^6.5.0",
     "winston": "^3.2.1",

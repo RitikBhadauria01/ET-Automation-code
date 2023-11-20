@@ -26,6 +26,7 @@ const getUserData = async (email, data) => {
   return new ResposneObject(200, message, true, dataValues);
 };
 const graphApi = async (accessToken) => {
+console.log("sakib=>>>>",accessToken)
   // var headers = new Headers();
   //console.log('---------inside graph api ----');
   let graphEndpoint = 'https://graph.microsoft.com/beta/me';
@@ -36,7 +37,7 @@ const graphApi = async (accessToken) => {
       },
     });
     //
-    //  console.log('resposne  graph api ffffffffffffffffff-----',resp.data);
+      console.log('resposne  graph api ffffffffffffffffff-----',resp.data);
     let responseEmail = resp.data.onPremisesUserPrincipalName;
     if (responseEmail != '') {
       // find user data using email
@@ -83,6 +84,7 @@ const authenticateWebUser = catchAsync(async (req, res, next) => {
     return;
   } else if (resp.code == 200) {
     req.user = resp.data;
+    req.userResponseData = resp;
     next();
   }
 });

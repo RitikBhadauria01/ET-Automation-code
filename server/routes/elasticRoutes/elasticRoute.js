@@ -13,7 +13,11 @@ import {
   deleteAllIndices,
   globalSearch,
   getFromIndexUsingId,
-  getFramework
+  getFramework,
+ /// new imports
+  elasticSearchTwin,
+  searchQueryTwin,
+  searchBasedOnQueryForEmpolyeeTwin
 } from '../../controllers/elasticSearch';
 import { authenticateWebUser } from '../../helpers/msal';
 
@@ -33,6 +37,9 @@ router.get('/searchQuery', searchBasedOnQuery);
 router.get('/searchWildcard', searchQuery);
 router.get('/searchAny', searchAny);
 router.get('/botSearchSuggestions', botSearchSuggestions);
-
+///new routes
+router.get('/searchTwin', elasticSearchTwin);
+router.get('/searchQueryTwin', searchBasedOnQueryForEmpolyeeTwin);
+router.get('/searchWildcardtwin', searchQueryTwin);
 
 export default router;

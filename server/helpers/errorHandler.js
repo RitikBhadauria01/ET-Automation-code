@@ -34,6 +34,7 @@ const sendErrorResponse = (err, req, res) => {
     const returnObj = responseObject.create({
       code: err.statusCode,
       message: err.message,
+      data:[]
     });
     return res.send(returnObj);
   }

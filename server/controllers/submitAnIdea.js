@@ -7,11 +7,17 @@ import { submitAnIdeaMailer } from './mailerController';
 const submitIdea = catchAsync(async (req, res, next) => {
     // check for validations 
     console.log("Req body --", req.body);
-    const { ideaProposedByMail, ideaSubmittedBy } = req.body;
+    const { ideaProposedByMail, ideaSubmittedBy, expectedRequestorEmail } = req.body;
     if (ideaProposedByMail == '') {
         res.send(new ResponseObject(401, 'User mail missing', false, {}));
         return;
     }
+
+    if (expectedRequestorEmail == '') {
+        res.send(new ResponseObject(401, 'User mail missing', false, {}));
+        return;
+    }
+    
     if (ideaSubmittedBy == '') {
         res.send(new ResponseObject(401, 'Name missing', false, {}));
         return;

@@ -14,14 +14,15 @@ const getUserData = async (email, data) => {
   if (email == '') {
     return new AppError('Email is Missing', 404);
   }
+console.log("abhi " +email);
   // find in database
   let response = await UserBot.User.findAll({
     where: {
       email: email,
     },
   });
- // console.log("response  ----", response);
- // console.log('5');
+  console.log("response  ----", response);
+  console.log('5');
   if (response.length == 0) {
    // console.log("6");
    console.log("this is the data that I need", data)

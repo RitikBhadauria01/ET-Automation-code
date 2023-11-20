@@ -636,6 +636,262 @@ const getFromIndexUsingId = catchAsync(async (req, res, next) => {
   //console.log("botUSerResponse  ----", botUserReponse);
   res.send(new ResponseObject(200, 'datafound', true, response.hits));
 });
+
+// twin
+const elasticSearchTwin = catchAsync(async (req, res, next) => {
+  let twinindex = Number(req.query.twinindex);
+  let count = await ElasticClient.count({
+    index: 'doctwinindex',
+    type: '_doc',
+  });
+  let searchRsponse = await ElasticClient.search({
+    from: twinindex != 0 ? twinindex * 10 : 0,
+    size: 10,
+    index: 'doctwinindex',
+    type: '_doc',
+    body: {
+      query: {
+        match_all: {},
+      },
+      sort: [{ twinID: { order: 'desc' } }],
+    },
+  }); 
+  res.send(
+    new ResponseObject(200, 'Search', true, {
+      allTwinBots: searchRsponse.hits.hits,
+      totalIndex: count.count,
+    })
+  );
+});
+
+const searchBasedOnQueryForEmpolyeeTwin = catchAsync(async (req, res, next) => {
+  let { twinindex } = req.query;
+  console.log("line 52",twinindex);
+  // searach based on one query
+  let query = req.query;
+  console.log("line 54",query);
+
+  if (twinindex == undefined) {
+    twinindex = 0;
+  }
+  console.log('twin index');
+  console.log('req query  --', query);
+  let array = [];
+  let search = {};
+  for (const prop in query) {
+    if (prop == 'search') {
+      // search = { q: query[prop] };
+      let obj = {
+        query_string: {
+          query: query[prop],
+        },
+      };
+      array.push(obj);
+    } else if (prop == 'twinindex') {
+      twinindex = Number(req.query.twinindex);
+    } else {
+      let obj = {
+        match: {
+          [prop]: query[prop],
+        },
+      };
+      array.push(obj);
+    }
+  }
+
+  // console.log('Filter --', filter);
+  //console.log(array, 'arrray');
+  let totalBots = await ElasticClient.count({
+    index: 'doctwinindex',
+    type: '_doc',
+    body: {
+      query: {
+        bool: {
+          must: array,
+        },
+      },
+    },
+  });
+  console.log(totalBots.count);
+  let count = 0;
+
+  let searchResult = '';
+
+  console.log('if no keyword  ', req.query);
+
+  let elasticWithoutKeyWordSearch = await ElasticClient.search({
+    index: 'doctwinindex',
+    from: twinindex != 0 ? twinindex * 10 : 0,
+    size: 10,
+    type: '_doc',
+    body: {
+      query: {
+        bool: {
+          must: array,
+        },
+      },
+      sort: [{ 
+        "status.keyword": { order: 'desc' }
+    }],
+    },
+  });
+  console.log('elastic result');
+  // console.log('without keyword', elasticWithoutKeyWordSearch);
+  searchResult = elasticWithoutKeyWordSearch.hits.hits;
+  // if (searchResult.length >0) {
+  //   console.log('search reslut of elastic ------', searchResult[0]._id);
+  // searchResult = searchResult.sort((a, b) => parseInt(b._id) - parseInt(a._id));
+  searchResult = searchResult.sort((a, b) => parseInt(b.supportStatus) - parseInt(a.supportStatus));
+
+  // console.log('search reslut of elastic ------', searchResult);
+  // }
+  // slice result on basis of bot index
+  // searchResult = searchResult.slice(botIndex  10, botIndex  10 + 10);
+  count = elasticWithoutKeyWordSearch.hits.hits.length;
+  console.log('Count', count);
+
+  console.log({ totalIndex: totalBots.count });
+  res.send(
+    new ResponseObject(200, 'found', true, {
+      allTwinBots: searchResult,
+      totalIndex: totalBots.count,
+    })
+  );
+});
+
+const queryParamSearchTwin = async (parms) => {
+  console.log('params  --', parms);
+  let searchResponseQuery = await ElasticClient.search({
+    index: 'doctwinindex',
+    type: '_doc',
+    body: {
+      query: {
+        bool: {
+          must: [{ match: parms }],
+        },
+      },
+    },
+  });
+  console.log('search response query ', searchResponseQuery);
+  return searchResponseQuery;
+};
+
+const searchQueryTwin= catchAsync(async (req, res, next) => {
+  // lead platfrom and cluster
+  console.log('Herere');
+  console.log(req.user);
+  //let { cluster, leadPlatform } = req.user;
+  let cluster = req.user.personalCluster;
+  let leadPlatform = req.user.personalLeadPlatform;
+
+  if (
+    (cluster != null && cluster != undefined) ||
+    (leadPlatform != null && leadPlatform != undefined)
+  ) {
+    console.log('if');
+    let searchResponseQuery = '';
+    // check both are there and search the result
+    if (
+      cluster != null &&
+      cluster != undefined &&
+      cluster != '' &&
+      leadPlatform != null &&
+      leadPlatform != undefined &&
+      leadPlatform != ''
+    ) {
+      searchResponseQuery = await ElasticClient.search({
+        index: 'doctwinindex',
+        type: '_doc',
+        body: {
+          query: {
+            bool: {
+              must: [
+                { match: { cluster: req.user.personalCluster } },
+                { match: { leadPlatform: req.user.personalLeadPlatform } },
+              ],
+            },
+          },
+        },
+      });
+      console.log('search ', searchResponseQuery);
+
+      if (searchResponseQuery.took > 0) {
+        res.send(
+          new ResponseObject(200, 'found', true, { allBots: searchResponseQuery.hits.hits })
+        );
+        return;
+      }
+      if (searchResponseQuery.took == 0) {
+        // search on basis of cluster
+        console.log('cluster  ---');
+        searchResponseQuery = await queryParamSearchTwin({ cluster: cluster });
+        console.log('cluster reslut  ---', searchResponseQuery);
+        if (searchResponseQuery.took == 0) {
+          console.log('lead');
+          searchResponseQuery = await queryParamSearchTwin({ leadPlatform: leadPlatform });
+        }
+        if (searchResponseQuery.took == 0) {
+          console.log('leaddd');
+          searchResponseQuery = await queryParamSearchTwin({ leadPlatform: req.query.leadPlatform });
+        }
+        console.log('Final Result --', searchResponseQuery);
+        res.send(
+          new ResponseObject(200, 'found', true, { allBots: searchResponseQuery.hits.hits })
+        );
+        return;
+      }
+    } else if (cluster != undefined && cluster != null && cluster != '') {
+      console.log('case cluster  ---');
+      let searchBasedOnCluster = await queryParamSearchTwin({ cluster: cluster });
+      if (searchBasedOnCluster.took == 0) {
+        searchBasedOnCluster = await queryParamSearchTwin({ leadPlatform: req.query.leadPlatform });
+      }
+      res.send(new ResponseObject(200, 'found', true, { allBots: searchBasedOnCluster.hits.hits }));
+      return;
+    } else if (leadPlatform != undefined && leadPlatform != null && leadPlatform != '') {
+      console.log('lead');
+      let searchBasedLead = await queryParamSearchTwin({ leadPlatform: leadPlatform });
+      if (searchBasedLead.took == 0) {
+        searchBasedLead = await queryParamSearchTwin({ leadPlatform: req.query.leadPlatform });
+      }
+      res.send(new ResponseObject(200, 'found', true, { allBots: searchBasedLead.hits.hits }));
+      return;
+    }
+    else {
+      if (Object.keys(req.query).length != 0) {
+        let searchResponseQuery = await ElasticClient.search({
+          index: 'doctwinindex',
+          type: '_doc',
+          body: {
+            query: {
+              bool: {
+                must: [{ match: { leadPlatform: req.query.leadPlatform } }],
+              },
+            },
+          },
+        });
+        res.send(new ResponseObject(200, 'found', true, { allBots: searchResponseQuery.hits.hits }));
+      }
+    }
+  } else {
+    if (Object.keys(req.query).length != 0) {
+      let searchResponseQuery = await ElasticClient.search({
+        index: 'doctwinindex',
+        type: '_doc',
+        body: {
+          query: {
+            bool: {
+              must: [{ match: { leadPlatform: req.query.leadPlatform } }],
+            },
+          },
+        },
+      });
+      res.send(new ResponseObject(200, 'found', true, { allBots: searchResponseQuery.hits.hits }));
+    }
+  }
+});
+// end twin
+
 export default {
   elasticIndexing,
   elasticPing,
@@ -650,4 +906,9 @@ export default {
   globalSearch,
   getFromIndexUsingId,
   getFramework,
+ /// New Routes
+  elasticSearchTwin,
+  searchQueryTwin,
+  searchBasedOnQueryForEmpolyeeTwin,
+  queryParamSearchTwin
 };

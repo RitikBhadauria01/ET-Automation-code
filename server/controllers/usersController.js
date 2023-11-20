@@ -81,15 +81,36 @@ const createUsers = catchAsync(async (req, res, next) => {
   }
   // check user if already exist then proceed
   let getUserResponse = await UserBot.User.findByPk(req.body.email);
-  if (getUserResponse == null) {
+  if (!getUserResponse) {
     let userType = req.body.userType;
     if (userType == 'firstGfcf' || userType == "gfcf") {
+      const {mco, area,subArea,leadPlatform}= req.body;
+      let whereCondition = [];
+       if(mco ){
+        whereCondition['mco']=mco;
+          }
+          if(subArea){
+            whereCondition['subArea']=subArea;
+          }
+          if(area){
+            whereCondition['area']=area;
+          }
+          if(leadPlatform){
+            whereCondition['leadPlatform']=leadPlatform;
+          }
+      console.log("sdf")
       let getUserByType = await BotUser.User.findOne({
         where: {
-          [Op.and]: [{ userType: userType }, { mco: req.body.mco }, { cluster: req.body.cluster }],
+          userType: userType,
+          [Op.or]: [
+             
+              { cluster: req.body.cluster },
+              whereCondition
+             
+          ],
         },
       });
-      if (getUserByType == null) {
+      if (getUserByType) {
         await UserBot.User.sync();
         let userTableResposne = UserBot.User.build(req.body);
         let resp = await userTableResposne.save();
@@ -98,7 +119,8 @@ const createUsers = catchAsync(async (req, res, next) => {
         res.send(
           new ResponseObject(
             401,
-            `User can't be created because such usertype already exists for mco ${req.body.mco} and  cluster ${req.body.cluster}`,
+            `User can't be created because such usertype already exists for mco ${req.body.mco} and  cluster ${req.body.cluster}
+             and leadPlatform ${req.body.leadPlatform} and area ${req.body.area} and subArea ${req.body.subArea}`,
             true,
             {}
           )
@@ -107,12 +129,24 @@ const createUsers = catchAsync(async (req, res, next) => {
     } 
     
     if (userType == 'firstLevelGPMApprover'  || userType == "GPMapprover") {
+      const {area,subArea}= req.body;
+      let whereCondition1 = [];
+       if(area ){
+        whereCondition1['area']=area;
+          }
+          if(subArea){
+            whereCondition1['subArea']=subArea;
+          }
       let getUserByType = await BotUser.User.findOne({
         where: {
-          [Op.and]: [{ userType: userType }, { leadPlatform: req.body.leadPlatform }, { area: req.body.area }, {subArea : req.body.subArea}],
+          email:req.body.email,
+          [Op.or]: [{ userType: userType },
+             { leadPlatform: req.body.leadPlatform },
+              whereCondition1
+              ],
         },
       });
-      if (getUserByType == null) {
+      if (!getUserByType) {
         await UserBot.User.sync();
         let userTableResposne = UserBot.User.build(req.body);
         let resp = await userTableResposne.save();
@@ -123,7 +157,8 @@ const createUsers = catchAsync(async (req, res, next) => {
         res.send(
           new ResponseObject(
             401,
-            `User can't be created because such usertype already exists for leadplatform ${req.body.leadPlatform}, area ${req.body.area} and subArea ${req.body.subArea}`,
+            `User can't be created because such usertype already exists for leadplatform ${req.body.leadPlatform},
+             area ${req.body.area} and subArea ${req.body.subArea}`,
             true,
             {}
           )
@@ -137,14 +172,53 @@ const createUsers = catchAsync(async (req, res, next) => {
       let getUserByTypeGcad = await BotUser.User.findOne({
         where: {
           userType: userType,
+          email:req.body.email
         },
       });
 
-      if (getUserByTypeGcad == null) {
+      if (!getUserByTypeGcad)   {
         await UserBot.User.sync();
         let userTableResposne = UserBot.User.build(req.body);
         let resp = await userTableResposne.save();
         res.send(new ResponseObject(200, 'Suceesfuuly Created', true, resp));
+       } 
+      //  else {
+      //   res.send(new ResponseObject(401, `User Already Exist for ${userType} `, true, {}));
+      // }
+    } else if (userType == 'landscape') {
+      let getUserByTypeLandscape = await BotUser.User.findOne({
+        where: {
+          email: req.body.email,
+          [Op.or]:[
+          {userType:userType},
+          {landscape:req.body.landscape}
+          ]
+        
+        },
+      });
+      console.log("vineeth landscape user", getUserByTypeLandscape);
+
+      if (!getUserByTypeLandscape) {
+        await UserBot.User.sync();
+        let userTableResposne = UserBot.User.build(req.body);
+        let resp = await userTableResposne.save();
+        res.send(new ResponseObject(200, 'Successfully Created', true, resp));
+      } else {
+        res.send(new ResponseObject(401, `User Already Exist for ${userType} `, true, {}));
+      }
+    }else if (userType == 'infosec') {
+      let getUserByTypeInfosec = await BotUser.User.findOne({
+        where: {
+          userType: userType,
+          email: req.body.email,
+        },
+      });
+
+      if (!getUserByTypeInfosec) {
+        await UserBot.User.sync();
+        let userTableResposne = UserBot.User.build(req.body);
+        let resp = await userTableResposne.save();
+        res.send(new ResponseObject(200, 'Successfully Created', true, resp));
       } else {
         res.send(new ResponseObject(401, `User Already Exist for ${userType} `, true, {}));
       }
@@ -164,6 +238,7 @@ const createUsers = catchAsync(async (req, res, next) => {
     );
   }
 });
+
 
 // get user based on email
 const getUserData = catchAsync(async (req, res, next) => {
@@ -212,11 +287,12 @@ const updateUserData = catchAsync(async (req, res, next) => {
   if (req.body.toUpdateUser.userType == 'gCad') {
     const resultGcadUpdate = await UserBot.User.findOne({
       where: {
-        userType: 'gCad',
+        email:req.body.email,
+        //userType: 'gCad',
       },
     });
     console.log('res ----------------', resultGcadUpdate);
-    if (resultGcadUpdate != null) {
+    if (!resultGcadUpdate) {
       res.send(
         new ResponseObject(401, `User can't be updated because such user type already exist`, false, {})
       );
@@ -228,13 +304,17 @@ const updateUserData = catchAsync(async (req, res, next) => {
   ) {
     const resultuserTypeUpdate = await UserBot.User.findOne({
       where: {
-        userType: req.body.toUpdateUser.userType,
-        mco: req.body.toUpdateUser.mco,
-        cluster: req.body.toUpdateUser.cluster,
+        email:req.body.email,
+        // userType: req.body.toUpdateUser.userType,
+        // mco: req.body.toUpdateUser.mco,
+        // cluster: req.body.toUpdateUser.cluster,
+        // leadPlatform: req.body.toUpdateUser.leadPlatform,
+        // subArea: req.body.toUpdateUser.subArea,
+        // area: req.body.toUpdateUser.area,
       },
     });
     console.log('user type  --- update', resultuserTypeUpdate);
-    if (resultuserTypeUpdate != null) {
+    if (!resultuserTypeUpdate) {
       res.send(
         new ResponseObject(401, `User can't be updated because such usertype already exist `, false, {})
       );
@@ -248,30 +328,123 @@ const updateUserData = catchAsync(async (req, res, next) => {
   ) {
     const resultuserTypeUpdate = await UserBot.User.findOne({
       where: {
-        userType: req.body.toUpdateUser.userType,
-        leadPlatform: req.body.toUpdateUser.leadPlatform,
-        area: req.body.toUpdateUser.area,
-        subArea : req.body.toUpdateUser.subArea,
+        email:req.body.email,
+        // userType: req.body.toUpdateUser.userType,
+        // [Op.or]:[
+        // {leadPlatform: req.body.toUpdateUser.leadPlatform},
+        // {area: req.body.toUpdateUser.area},
+        // {subArea : req.body.toUpdateUser.subArea},
+        // ]
       },
     });
     console.log('user type  --- update', resultuserTypeUpdate);
-    if (resultuserTypeUpdate != null) {
+    if (!resultuserTypeUpdate) {
       res.send(
         new ResponseObject(401, `User can't be updated because such usertype already exist `, false, {})
       );
       return;
     }
   }
+  else if (
+    req.body.toUpdateUser.userType == 'landscape'
+  ) {
+    const resultuserTypeUpdate = await UserBot.User.findOne({
+      where: {
+        email: req.body.email,
+        // userType: req.body.toUpdateUser.userType,
+        // [Op.or]: [
+        //   { leadPlatform: req.body.toUpdateUser.leadPlatform },
+        //   { area: req.body.toUpdateUser.area },
+        //   { subArea: req.body.toUpdateUser.subArea },
+        // ],
+      },
+    });
+    console.log('user type  --- update', resultuserTypeUpdate);
+    if (!resultuserTypeUpdate) {
+      res.send(
+        new ResponseObject(
+          401,
+          `User can't be updated because such usertype already exist `,
+          false,
+          {}
+        )
+      );
+      return;
+    }
+  }
+  else if (
+    req.body.toUpdateUser.userType == 'infosec'
+  ) {
+    const resultuserTypeUpdate = await UserBot.User.findOne({
+      where: {
+        email: req.body.email,
+        // userType: req.body.toUpdateUser.userType,
+        // [Op.or]: [
+        //   { leadPlatform: req.body.toUpdateUser.leadPlatform },
+        //   { area: req.body.toUpdateUser.area },
+        //   { subArea: req.body.toUpdateUser.subArea },
+        // ],
+      },
+    });
+    console.log('user type  --- update', resultuserTypeUpdate);
+    if (!resultuserTypeUpdate) {
+      res.send(
+        new ResponseObject(
+          401,
+          `User can't be updated because such usertype already exist `,
+          false,
+          {}
+        )
+      );
+      return;
+    }
+  }
+  let responseUpdate = [];
+  if (req.body.toUpdateUser.userType == 'endUser') {
+    responseUpdate = await UserBot.User.update(
+      {
+        userType: 'endUser',
+        leadPlatform: '',
+        area: '',
+        subArea: '',
+        cluster: '',
+        mco: '',
+      },
+      {
+        where: {
+          email: req.body.email,
+        },
+      }
+    );
+  }
+  else{
+    
+    const resultuserTypeUpdate = await UserBot.User.findOne({
+      where: {
+        email: req.body.email,}
+      })
+    console.log(resultuserTypeUpdate,"asdfghjk")
+    responseUpdate  = await UserBot.User.destroy(
+     { where: {
+        email: req.body.email,
+      },}
+    )
+    req.body.toUpdateUser['email']= req.body.email;
+    req.body.toUpdateUser['name'] = resultuserTypeUpdate.dataValues.name;
+    responseUpdate = await UserBot.User.create(req.body.toUpdateUser);
+
+  }
 
 
 
-
+////////old code css to new vineeth
   // email handled by sql
-  let responseUpdate = await UserBot.User.update(req.body.toUpdateUser, {
-    where: {
-      email: req.body.email,
-    },
-  });
+  // let responseUpdate = await UserBot.User.update(req.body.toUpdateUser, {
+  //   where: {
+  //     email: req.body.email,
+  //   },
+  // });
+  ////////old code css to new vineeth
 
   let updateMessage = 'Updated Successfully';
   if (responseUpdate[0] == 0) {
@@ -469,3 +642,4 @@ export default {
   createBusinnesOwner,
   updateUserPersonalData
 };
+

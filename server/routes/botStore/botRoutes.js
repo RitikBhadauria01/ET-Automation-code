@@ -18,7 +18,8 @@ import {
   indexalldata,
   addFolderName,
   editDocumentLink,
-  getBotIdByExtID
+  getBotIdByExtID,
+  updateBotStatus
 } from '../../controllers/botController';
 
 import { authenticateWebUser } from '../../helpers/msal';
@@ -30,7 +31,7 @@ router.post('/dataMigration', dataMigration);
 router.get('/indexData', indexalldata);
 
 
-
+router.put('/updateBotStatus',updateBotStatus);
 router.use(authenticateWebUser);
 
 router.post('/createBot', createBot);
