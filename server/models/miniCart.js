@@ -3,6 +3,11 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../helpers/Sequalize';
 
 const miniCart = sequelize.define('miniCart', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     userName: {
       type: DataTypes.STRING,
       allowNull: true,  
@@ -22,7 +27,7 @@ const miniCart = sequelize.define('miniCart', {
         //primaryKey: true,
       },
     price:{
-        type:DataTypes.NUMBER,
+        type:DataTypes.FLOAT,
         allowNull:true
     },
     createdAt: {
