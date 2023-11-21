@@ -6601,9 +6601,8 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
   try {
     const { skillID } = req.query;
 
-    await miniCart.sync();
-    await softSkill.sync();
-    await BotUser.Bot.sync();
+    // Ensure miniCart, softSkill, and BotUser tables are synchronized
+    await Promise.all([miniCart.sync(), softSkill.sync(), BotUser.Bot.sync()]);
 
     if (!skillID) {
       return res.status(400).send({
@@ -6626,7 +6625,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
       });
 
       if (existingCartItem) {
-         await miniCart.destroy({
+        await miniCart.destroy({
           where: {
             userName: req.user.name,
             skillID: BotIDorSkillID,
@@ -6653,12 +6652,11 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
             skillDescription: botData.dataValues.processDescription,
             price: botData.dataValues.price,
           });
-
-          return res.status(200).json({
-            success: true,
-            message: 'Skill added to the cart',
-            result: result,
-            code: 200,
+        } else {
+          return res.status(404).json({
+            success: false,
+            message: 'Bot ID not found',
+            code: 404,
           });
         }
       }
@@ -6700,21 +6698,29 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
             skillDescription: softSkillData.dataValues.skillDescription,
             price: softSkillData.dataValues.price,
           });
-
-          return res.status(200).json({
-            success: true,
-            message: 'Skill added to the cart',
-            result: result,
-            code: 200,
+        } else {
+          return res.status(404).json({
+            success: false,
+            message: 'Soft Skill ID not found',
+            code: 404,
           });
         }
       }
     }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Skill added to the cart',
+      result: result,
+      code: 200,
+    });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Server error', code: 500 });
   }
 });
+
 
 
 const getselectedSkills = catchAsync(async (req, res, next) => {
@@ -6762,6 +6768,38 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
   }
 });
 
+const deleteSelectedSkill = catchAsync(async (req, res, next) => {
+  try {
+    await miniCart.sync();
+
+    const { skillID } = req.query;
+    const user = req.user.name;
+
+    if (!skillID) {
+      return res.status(400).send({
+        success: false,
+        message: 'Please provide Skill ID or Bot ID to delete',
+      });
+    }
+
+    const deleteItem = await miniCart.destroy({
+      where: {
+        userName : user,
+        skillId: skillID
+    }
+  }) 
+
+   if(deleteItem === 0 ){
+     return  res.status(404).json({ success: false, message: 'Provided skill Id is not yet selected', code: 404 });
+   }
+
+   return res.status(200).json({ success: true, message: 'Provided Skill Id is deleted.', code: 200 });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server error', code: 500 });
+  }
+});
 
 export default {
     createTwin,
@@ -6825,5 +6863,6 @@ deleteSkillMailAPI,
   generatePDFAPI,
   getAllReviews ,
   toggleSkillsToMinicart,
-  getselectedSkills
+  getselectedSkills,
+  deleteSelectedSkill
 }
