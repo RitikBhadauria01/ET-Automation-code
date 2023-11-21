@@ -6747,7 +6747,15 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
       selectedSkills: result,
     };
 
-    return res.status(200).json({ success: true, response, code: 200 });
+    res.status(200).json({ success: true, response, code: 200 });
+
+
+    await miniCart.destroy({
+      where: {
+        userName: user,
+      },
+    });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Server error', code: 500 });
