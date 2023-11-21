@@ -29,6 +29,7 @@ import Cost_per_Skill from '../models/Cost_per_Skill';
 import userPerBot from '../models/User_Per_Bot';
 import skillRatings from '../models/skill_rating';
 import miniCart from '../models/miniCart';
+import cartFormData from '../models/cartFormData';
 
 import InvoiceForm from '../models/InvoiceForm';
 const PDFDocument = require('pdfkit');
@@ -38,6 +39,9 @@ const fs = require('fs');
 
 import et_user from '../models/ET_user';
 import newUserUnilever from '../models/newUser';
+
+
+
 // create ET
 const createTwin = catchAsync(async (req, res, next) => {
   const table = await employeeTwin.employeeTwin.sync();
@@ -6601,7 +6605,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
   try {
     const { skillID } = req.query;
 
-    // Ensure miniCart, softSkill, and BotUser tables are synchronized
     await Promise.all([miniCart.sync(), softSkill.sync(), BotUser.Bot.sync()]);
 
     if (!skillID) {
@@ -6721,8 +6724,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
   }
 });
 
-
-
 const getselectedSkills = catchAsync(async (req, res, next) => {
   try {
     await miniCart.sync();
@@ -6801,6 +6802,90 @@ const deleteSelectedSkill = catchAsync(async (req, res, next) => {
   }
 });
 
+const createCartFormDataEntry = async (req, res, next) => {
+  try {
+    await cartFormData.sync();
+
+    const {
+      employeeTwinID,
+      ET_name,
+      functionField,
+      region,
+      descriptions,
+      ET_logo,
+      Business_owner,
+      Country_code,
+      GL_Account,
+      Cost_centre_owner,
+      To_country_code,
+      To_cost_centre,
+      commentText,
+      commentType,
+    } = req.body;
+
+    const existingUser = await cartFormData.findOne({
+      where: {
+        employeeTwinID,
+      },
+    });
+
+    if (existingUser) {
+      await existingUser.update({
+        ET_name,
+        function: functionField,
+        region,
+        descriptions,
+        ET_logo,
+        Business_owner,
+        Country_code,
+        GL_Account,
+        Cost_centre_owner,
+        To_country_code,
+        To_cost_centre,
+        commentText,
+        commentType,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'User data updated successfully',
+        data: existingUser,
+        code: 200,
+      });
+    } else {
+
+      const newEntry = await cartFormData.create({
+        employeeTwinID,
+        ET_name,
+        function: functionField,
+        region,
+        descriptions,
+        ET_logo,
+        Business_owner,
+        Country_code,
+        GL_Account,
+        Cost_centre_owner,
+        To_country_code,
+        To_cost_centre,
+        commentText,
+        commentType,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Cart form data entry created successfully',
+        data: newEntry,
+        code: 201,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server error', code: 500 });
+  }
+};
+
+
+
 export default {
     createTwin,
     getTwin,
@@ -6864,5 +6949,6 @@ deleteSkillMailAPI,
   getAllReviews ,
   toggleSkillsToMinicart,
   getselectedSkills,
-  deleteSelectedSkill
+  deleteSelectedSkill,
+  createCartFormDataEntry
 }

@@ -38,7 +38,7 @@ rookieDataByET,
 CheckoutMailAPI,
 createdSkillRating,getSkillRating,userTrafficGraph,
 createET_user,getET_user,deleteET_user,getAllET_user,
-getAllUsers,createInvoiceTable,getCostCenterData,updateCostCenterData,emailCostCenterdata,generatePDFAPI,getAllReviews, toggleSkillsToMinicart,getselectedSkills,deleteSelectedSkill } from '../../controllers/twinController';
+getAllUsers,createInvoiceTable,getCostCenterData,updateCostCenterData,emailCostCenterdata,generatePDFAPI,getAllReviews, toggleSkillsToMinicart,getselectedSkills,deleteSelectedSkill,createCartFormDataEntry } from '../../controllers/twinController';
 import {employee_order, get_order,get_product,store_product, getProductCart,getProductCartNew,getTwinname} from '../../controllers/employee_order';
 import { authenticateWebUser } from '../../helpers/msal';
 import {employee_manage,getManageTwin,getDataByMonth}  from '../../controllers/employee_manage';
@@ -150,6 +150,7 @@ router.post('/toggleSkillsToMinicart',toggleSkillsToMinicart);
 router.get('/getselectedSkills',getselectedSkills);
 router.get('/deleteSelectedSkill',deleteSelectedSkill);
 
+router.post('/createCartFormDataEntry',createCartFormDataEntry);
 
 
 export default router;
