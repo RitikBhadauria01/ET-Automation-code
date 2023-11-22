@@ -39,6 +39,7 @@ const fs = require('fs');
 
 import et_user from '../models/ET_user';
 import newUserUnilever from '../models/newUser';
+import { log } from 'console';
 
 
 
@@ -3085,62 +3086,177 @@ const getallSkillsByET = catchAsync(async (req, res, next) => {
 
   const resultGenAIBotMapWithRatings = resultGenAIBotMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingGB[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingGB[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingGB[softSkill.botID], // Add number of ratings
   }));
 
   const resultGenAISoftMapWithRatings = resultGenAISoftMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingGS[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingGS[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingGS[softSkill.botID], // Add number of ratings
   }));
 
   const resultSoftMapWithRatings = resultSoftMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatings[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatings[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatings[softSkill.botID], // Add number of ratings
   }));
   const resultTransMapWithRatings = resultTranMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsT[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsT[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsT[softSkill.botID], // Add number of ratings
   }));
   const resultRepMapWithRatings = resultReportMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsR[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsR[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsR[softSkill.botID], // Add number of ratings
   }));
   const resultCogMapWithRatings = resultCogMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsC[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsC[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsC[softSkill.botID], // Add number of ratings
   }));
   const resultDecMapWithRatings = resultDecMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsD[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsD[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsD[softSkill.botID], // Add number of ratings
   }));
   console.log("resultTransMapWithRatings",resultTransMapWithRatings)
 
 
-  resultGenAIBotMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultGenAISoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultSoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultTransMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultRepMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultCogMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultDecMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  const combinedGenAIArray = [
+    ...resultGenAIBotMapWithRatings,
+    ...resultGenAISoftMapWithRatings
+  ];
+
+  // resultGenAIBotMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultGenAISoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultSoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultTransMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultRepMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultCogMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultDecMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+
+
+  combinedGenAIArray.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+
+  resultSoftMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultTransMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultRepMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultCogMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultDecMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+
+
     const data = [
         ...resultTransMapWithRatings,
         ...resultRepMapWithRatings,
         ...resultCogMapWithRatings,
         ...resultDecMapWithRatings,
         ...resultSoftMapWithRatings,
-        ...resultGenAISoftMapWithRatings,
-        ...resultGenAIBotMapWithRatings
+        ...combinedGenAIArray
       ];
+
+      data.sort((a, b) => {
+        const ratingA = a.averageRating || 0;
+        const ratingB = b.averageRating || 0;
     
-      
+        const ratingComparison = ratingB - ratingA;
+    
+        if (ratingComparison === 0) {
+          const countA = a.countRatings || 0
+          const countB = b.countRatings || 0
+    
+          return countB - countA;
+        }
+    
+        return ratingComparison;
+      });
+    
+    
       if(data.length === 0){
           res.send( new ResponseObject(404,`No Data Found `,false,'Error'));
       }
@@ -3155,8 +3271,6 @@ const getallSkillsByET = catchAsync(async (req, res, next) => {
 }); 
 
 
-
- 
 {/*
 const searchTwin2 = catchAsync(async (req, res, next) => {
   // console.log("line 415 searchTwin ",req.query.empTwinId);
@@ -4294,58 +4408,175 @@ const getTwinDataByET = catchAsync(async (req, res, next) => {
   
   const resultGenAIBotMapWithRatings = resultGenAIBotMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingGB[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingGB[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingGB[softSkill.botID]
   }));
 
   const resultGenAISoftMapWithRatings = resultGenAISoftMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingGS[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingGS[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingGS[softSkill.botID]
   }));
 
   const resultSoftMapWithRatings = resultSoftMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatings[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatings[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatings[softSkill.botID]
   }));
   const resultTransMapWithRatings = resultTranMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsT[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsT[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsT[softSkill.botID]
   }));
   const resultRepMapWithRatings = resultReportMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsR[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsR[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsR[softSkill.botID]
   }));
   const resultCogMapWithRatings = resultCogMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsC[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsC[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsC[softSkill.botID]
   }));
   const resultDecMapWithRatings = resultDecMap.map((softSkill) => ({
     ...softSkill,
-    averageRating: averageRatingsD[softSkill.botID], // Add average rating
+    averageRating: parseFloat(averageRatingsD[softSkill.botID].toFixed(1)), // Add average rating
     countRatings: countRatingsD[softSkill.botID]
   }));
   console.log("resultTransMapWithRatings",resultTransMapWithRatings)
-  resultGenAIBotMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultGenAISoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultSoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultTransMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultRepMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultCogMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-  resultDecMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+
+  const combinedGenAIArray = [
+    ...resultGenAIBotMapWithRatings,
+    ...resultGenAISoftMapWithRatings
+  ];
+
+  // resultGenAIBotMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultGenAISoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultSoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultTransMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultRepMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultCogMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+  // resultDecMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+
+  
+
+  combinedGenAIArray.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+
+  resultSoftMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultTransMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultRepMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultCogMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+  resultDecMapWithRatings.sort((a, b) => {
+    const ratingA = a.averageRating || 0;
+    const ratingB = b.averageRating || 0;
+
+    const ratingComparison = ratingB - ratingA;
+
+    if (ratingComparison === 0) {
+      const countA = a.countRatings || 0
+      const countB = b.countRatings || 0
+
+      return countB - countA;
+    }
+
+    return ratingComparison;
+  });
+
+
     const data = [
         ...resultTransMapWithRatings,
         ...resultRepMapWithRatings,
         ...resultCogMapWithRatings,
         ...resultDecMapWithRatings,
         ...resultSoftMapWithRatings,
-        ...resultGenAISoftMapWithRatings,
-        ...resultGenAIBotMapWithRatings
+        ...combinedGenAIArray
       ];
+
+      data.sort((a, b) => {
+        const ratingA = a.averageRating || 0;
+        const ratingB = b.averageRating || 0;
+    
+        const ratingComparison = ratingB - ratingA;
+    
+        if (ratingComparison === 0) {
+          const countA = a.countRatings || 0
+          const countB = b.countRatings || 0
+    
+          return countB - countA;
+        }
+    
+        return ratingComparison;
+      });
     
 
     res.status(200).json({
@@ -5086,11 +5317,93 @@ for (let i = 0; i < originalListSoft.length; i++) {
       countRatings: countRatingsD[softSkill.botID], // Add number of ratings
  }));
     console.log("resultTransMapWithRatings",resultTransMapWithRatings)
-    resultSoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-    resultTransMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-    resultRepMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-    resultCogMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
-    resultDecMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+
+
+
+    // resultSoftMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+    // resultTransMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+    // resultRepMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+    // resultCogMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+    // resultDecMapWithRatings.sort((a, b) => b.averageRating - a.averageRating);
+
+
+    resultSoftMapWithRatings.sort((a, b) => {
+      const ratingA = a.averageRating || 0;
+      const ratingB = b.averageRating || 0;
+  
+      const ratingComparison = ratingB - ratingA;
+  
+      if (ratingComparison === 0) {
+        const countA = a.countRatings || 0
+        const countB = b.countRatings || 0
+  
+        return countB - countA;
+      }
+  
+      return ratingComparison;
+    });
+    resultTransMapWithRatings.sort((a, b) => {
+      const ratingA = a.averageRating || 0;
+      const ratingB = b.averageRating || 0;
+  
+      const ratingComparison = ratingB - ratingA;
+  
+      if (ratingComparison === 0) {
+        const countA = a.countRatings || 0
+        const countB = b.countRatings || 0
+  
+        return countB - countA;
+      }
+  
+      return ratingComparison;
+    });
+    resultRepMapWithRatings.sort((a, b) => {
+      const ratingA = a.averageRating || 0;
+      const ratingB = b.averageRating || 0;
+  
+      const ratingComparison = ratingB - ratingA;
+  
+      if (ratingComparison === 0) {
+        const countA = a.countRatings || 0
+        const countB = b.countRatings || 0
+  
+        return countB - countA;
+      }
+  
+      return ratingComparison;
+    });
+    resultCogMapWithRatings.sort((a, b) => {
+      const ratingA = a.averageRating || 0;
+      const ratingB = b.averageRating || 0;
+  
+      const ratingComparison = ratingB - ratingA;
+  
+      if (ratingComparison === 0) {
+        const countA = a.countRatings || 0
+        const countB = b.countRatings || 0
+  
+        return countB - countA;
+      }
+  
+      return ratingComparison;
+    });
+    resultDecMapWithRatings.sort((a, b) => {
+      const ratingA = a.averageRating || 0;
+      const ratingB = b.averageRating || 0;
+  
+      const ratingComparison = ratingB - ratingA;
+  
+      if (ratingComparison === 0) {
+        const countA = a.countRatings || 0
+        const countB = b.countRatings || 0
+  
+        return countB - countA;
+      }
+  
+      return ratingComparison;
+    });
+  
+
 
      const combinedData = [
           ...resultTransMapWithRatings,
@@ -5100,7 +5413,21 @@ for (let i = 0; i < originalListSoft.length; i++) {
           ...resultSoftMapWithRatings,
         ];
  // Sort the combinedData array in descending order based on averageRating
-    combinedData.sort((a, b) => b.averageRating - a.averageRating);
+ combinedData.sort((a, b) => {
+  const ratingA = a.averageRating || 0;
+  const ratingB = b.averageRating || 0;
+
+  const ratingComparison = ratingB - ratingA;
+
+  if (ratingComparison === 0) {
+    const countA = a.countRatings || 0
+    const countB = b.countRatings || 0
+
+    return countB - countA;
+  }
+
+  return ratingComparison;
+});
 
     res.status(200).json({
       data:combinedData,
@@ -6259,21 +6586,82 @@ const generatePDFAPI = catchAsync(async (req, res) => {
           runCost: i.dataValues.RunCost
         };
       })
+
+      // const doubleRowHeightThreshold = 175;
       
-      for (let i = 1; i <= finalValues.length; i++) {
-        doc.moveTo(secondCol1 - 50, secondTabelRow  + i * rowHeight).lineTo(secondCol3 + 100, secondTabelRow + i * rowHeight).stroke();
-        rowValue += rowHeight
-        doc.text(finalValues[i-1].skillName,secondCol1 - 45, secondTabelRow + i * rowHeight -15);
-        doc.text(finalValues[i-1].skillType, secondCol2 - 30, secondTabelRow + i * rowHeight - 15);
-        doc.text(finalValues[i-1].runCost, secondCol3 - 30, secondTabelRow + i * rowHeight -15);
-      }
+      // for (let i = 1; i <= finalValues.length; i++) {
+
+      //   const skillNameWidth = doc.widthOfString(finalValues[i - 1].skillName);
+      //   const currentRowHeight = skillNameWidth > doubleRowHeightThreshold ? rowHeight * 2: rowHeight;
+
+      //   doc.moveTo(secondCol1 - 50, secondTabelRow  + i * (currentRowHeight == rowHeight ? rowHeight : currentRowHeight)).lineTo(secondCol3 + 100, secondTabelRow + i * (currentRowHeight == rowHeight ? rowHeight : currentRowHeight)).stroke();
+
+      //   rowValue += rowHeight
+      //   doc.text(finalValues[i-1].skillName,secondCol1 - 45, secondTabelRow + i * rowHeight -15, {width: 175});
+      //   doc.text(finalValues[i-1].skillType, secondCol2 - 30, secondTabelRow + i * rowHeight - 15);
+      //   doc.text(finalValues[i-1].runCost, secondCol3 - 30, secondTabelRow + i * rowHeight -15);
+      // }
   
-      // Draw vertical lines for table columns
-      doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
-      doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
-      doc.moveTo(secondCol3 - 40 , secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
-      doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
+      // // Draw vertical lines for table columns
+      // doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
+      // doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
+      // doc.moveTo(secondCol3 - 40 , secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
+      // doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
   
+
+
+
+const doubleRowHeightThreshold = 175;
+
+let currentRowHeight = 0;
+
+for (let i = 1; i <= finalValues.length; i++) {
+    const skillNameWidth = doc.widthOfString(finalValues[i - 1].skillName);
+
+    console.log(`skillNameWidth of ${finalValues[i - 1].skillName}`, skillNameWidth);
+
+    // const currentRowHeight = skillNameWidth > doubleRowHeightThreshold ? rowHeight + 6: rowHeight;
+
+
+    let overlapped = 0 
+
+    if(skillNameWidth > doubleRowHeightThreshold){
+      currentRowHeight = rowHeight + 4
+      overlapped = rowHeight + 4
+    }
+
+    // const currentRowHeight = rowHeight;
+
+    doc
+        .moveTo(secondCol1 - 50, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight))
+        .lineTo(secondCol3 + 100, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight))
+        .stroke();
+
+    rowValue += (currentRowHeight == 0 ? rowHeight : currentRowHeight + 4);
+
+    doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : overlapped == 0 ? currentRowHeight : overlapped - 4) - 15, {
+        width: 175,
+    }); 
+    doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight) - 15);
+    doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight) - 15);
+
+
+  //   doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * () - 15, {
+  //     width: 175,
+  // });
+  // doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * (currentRowHeight === rowHeight ? rowHeight : currentRowHeight > rowHeight ? currentRowHeight - 4 : currentRowHeight) - 15);
+  // doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * (currentRowHeight === rowHeight ? rowHeight : currentRowHeight > rowHeight ? currentRowHeight - 4 : currentRowHeight) - 15);
+  
+}
+
+// Draw vertical lines for table columns using the updated rowValue
+doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
+doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
+doc.moveTo(secondCol3 - 40, secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
+doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
+
+
+
   
       // Finalize the PDF
       doc.end();
@@ -6523,6 +6911,8 @@ const getAllReviews = catchAsync(async (req, res, next) => {
         userName : fullName
       };
     });
+
+    reviewWithTime.sort((a, b) => new Date(b.timeDifference) - new Date(a.timeDifference));
     
     const response = {
       softSkillDetail: {
@@ -6883,7 +7273,6 @@ const createCartFormDataEntry = async (req, res, next) => {
     res.status(500).json({ success: false, error: 'Server error', code: 500 });
   }
 };
-
 
 
 export default {
