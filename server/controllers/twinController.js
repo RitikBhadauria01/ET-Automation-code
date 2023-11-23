@@ -7063,7 +7063,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
             skillID: BotIDorSkillID,
             skillName: botData.dataValues.processName,
             skillDescription: botData.dataValues.processDescription,
-            price: botData.dataValues.price,
+            price: 6,
           });
           // totalPrice = Number(totalPrice) + Number(botData.dataValues.price)
           // getExistedCount = getExistedCount + 1;
@@ -7297,7 +7297,6 @@ const createCartFormDataEntry = async (req, res, next) => {
     res.status(500).json({ success: false, error: 'Server error', code: 500 });
   }
 };
-
 
 export default {
     createTwin,
