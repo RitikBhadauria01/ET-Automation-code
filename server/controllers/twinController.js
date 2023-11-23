@@ -7007,12 +7007,30 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
     let BotIDorSkillID = '';
     let result = null;
 
+    // const getExistedTotalPrice = await miniCart.findAll({
+    //   where: {
+    //     userName : req.user.name
+    //   },
+    //   attributes: [
+    //     [sequelize.fn('SUM', sequelize.col('price')), 'price'],
+    //   ]
+    // })
+    
+    // let getExistedCount = await miniCart.count({
+    //   where: {
+    //     userName : req.user.name
+    //   }
+    // })
+
+
+    // let totalPrice = getExistedTotalPrice[0].dataValues.price;
+
     if (!isNaN(Number(skillID))) {
       BotIDorSkillID = Number(skillID);
 
       const existingCartItem = await miniCart.findOne({
         where: {
-          userName: req.user.name,
+          userName: req.user.email,
           skillID: BotIDorSkillID,
         },
       });
@@ -7020,10 +7038,12 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
       if (existingCartItem) {
         await miniCart.destroy({
           where: {
-            userName: req.user.name,
+            userName: req.user.email,
             skillID: BotIDorSkillID,
           },
         });
+        // totalPrice = Number(totalPrice) - Number(existingCartItem.dataValues.price);
+        // getExistedCount = getExistedCount - 1
 
         return res.status(200).json({
           success: true,
@@ -7039,12 +7059,15 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
 
         if (botData) {
           result = await miniCart.create({
-            userName: req.user.name,
+            userName: req.user.email,
             skillID: BotIDorSkillID,
             skillName: botData.dataValues.processName,
             skillDescription: botData.dataValues.processDescription,
             price: botData.dataValues.price,
           });
+          // totalPrice = Number(totalPrice) + Number(botData.dataValues.price)
+          // getExistedCount = getExistedCount + 1;
+
         } else {
           return res.status(404).json({
             success: false,
@@ -7058,7 +7081,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
 
       const existingCartItem = await miniCart.findOne({
         where: {
-          userName: req.user.name,
+          userName: req.user.email,
           skillID: BotIDorSkillID,
         },
       });
@@ -7066,10 +7089,13 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
       if (existingCartItem) {
         await miniCart.destroy({
           where: {
-            userName: req.user.name,
+            userName: req.user.email,
             skillID: BotIDorSkillID,
           },
         });
+
+        // totalPrice = Number(totalPrice) - Number(existingCartItem.dataValues.price);
+        // getExistedCount = getExistedCount - 1;
 
         return res.status(200).json({
           success: true,
@@ -7085,12 +7111,15 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
 
         if (softSkillData) {
           result = await miniCart.create({
-            userName: req.user.name,
+            userName: req.user.email,
             skillID: BotIDorSkillID,
             skillName: softSkillData.dataValues.skillName,
             skillDescription: softSkillData.dataValues.skillDescription,
             price: softSkillData.dataValues.price,
           });
+          // totalPrice = Number(totalPrice) + Number(softSkillData.dataValues.price);
+          // getExistedCount = getExistedCount + 1
+
         } else {
           return res.status(404).json({
             success: false,
@@ -7105,7 +7134,9 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
       success: true,
       message: 'Skill added to the cart',
       result: result,
-      code: 200,
+      // totalPrice,
+      // TotalSelectedItems : getExistedCount,
+      code: 200
     });
 
   } catch (error) {
@@ -7118,7 +7149,7 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
   try {
     await miniCart.sync();
 
-    const user = req.user.name;
+    const user = req.user.email;
 
     const result = await miniCart.findAll({
       where: {
@@ -7144,14 +7175,7 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
       selectedSkills: result,
     };
 
-    res.status(200).json({ success: true, response, code: 200 });
-
-
-    await miniCart.destroy({
-      where: {
-        userName: user,
-      },
-    });
+    return res.status(200).json({ success: true, response, code: 200 });
 
   } catch (error) {
     console.error(error);
@@ -7164,7 +7188,7 @@ const deleteSelectedSkill = catchAsync(async (req, res, next) => {
     await miniCart.sync();
 
     const { skillID } = req.query;
-    const user = req.user.name;
+    const user = req.user.email;
 
     if (!skillID) {
       return res.status(400).send({
