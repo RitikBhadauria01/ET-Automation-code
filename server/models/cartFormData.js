@@ -4,8 +4,9 @@ import sequelize from '../helpers/Sequalize';
 const cartFormData = sequelize.define(
     'cartFormData',
     {
-        employeeTwinID: {
-            type: DataTypes.CHAR(50),
+        userName: {
+            type: DataTypes.STRING,
+            allowNull: false
         },
         ET_name:{
             type: DataTypes.STRING,

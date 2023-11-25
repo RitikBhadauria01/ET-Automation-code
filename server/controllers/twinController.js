@@ -7723,6 +7723,7 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
     });
 
     const response = {
+      orderID : result[0].dataValues.orderID,
       totalItemsInMiniCart: result.length,
       totalPriceOfMiniCart: totalPrice,
       selectedSkills: result,
@@ -7775,7 +7776,6 @@ const createCartFormDataEntry = async (req, res, next) => {
     await cartFormData.sync();
 
     const {
-      employeeTwinID,
       status,
       orderID,
       ET_name,
@@ -7799,7 +7799,7 @@ const createCartFormDataEntry = async (req, res, next) => {
 
     const existingUser = await cartFormData.findOne({
       where: {
-        employeeTwinID,
+        userName : req.user.email,
         orderStatus: 0,
       },
     });
@@ -7825,22 +7825,16 @@ const createCartFormDataEntry = async (req, res, next) => {
 
       response = existingUser;
     } else {
-      // const latestEntry = await cartFormData.findOne({
-      //   order: [['createdAt', 'DESC']],
-      // });
-
-      // let startOfOrderId = latestEntry ? parseInt(latestEntry.orderID.substring(1)) + 1 : 1;
-      // let orderID = `#${startOfOrderId.toString().padStart(4, '0')}`;
-
+     
       const checkUserPlacedOrder = await cartFormData.findAll({
         where: {
-          employeeTwinID,
+          userName : req.user.email,
           orderStatus: 1,
         },
       });
 
       const newEntryData = {
-        employeeTwinID,
+        userName : req.user.email,
         ET_name,
         function: functionField,
         region,
@@ -7867,7 +7861,7 @@ const createCartFormDataEntry = async (req, res, next) => {
 
     const mailData = await cartFormData.findOne({
       where: {
-        employeeTwinID,
+        userName : req.user.email,
         orderStatus: 1,
         orderID : response.orderID
       },
