@@ -7296,6 +7296,170 @@ const getAllReviews = catchAsync(async (req, res, next) => {
 });*/
 
 
+// const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
+//   try {
+//     const { skillID } = req.query;
+
+//     await Promise.all([miniCart.sync(), softSkill.sync(), BotUser.Bot.sync()]);
+
+//     if (!skillID) {
+//       return res.status(400).send({
+//         success: false,
+//         message: 'Please provide Skill ID or Bot ID',
+//       });
+//     }
+
+//     let BotIDorSkillID = '';
+//     let result = null;
+
+//     if (!isNaN(Number(skillID))) {
+//       BotIDorSkillID = Number(skillID);
+
+//       const existingCartItem = await miniCart.findOne({
+//         where: {
+//           userName: req.user.email,
+//           skillID: BotIDorSkillID
+//         },
+//       });
+
+//       if (existingCartItem) {
+//         await miniCart.destroy({
+//           where: {
+//             userName: req.user.email,
+//             skillID: BotIDorSkillID,
+//           },
+//         });
+
+//         return res.status(200).json({
+//           success: true,
+//           message: 'Skill removed from the cart',
+//           code: 200,
+//         });
+//       } else {
+//         const botData = await BotUser.Bot.findOne({
+//           where: {
+//             botID: BotIDorSkillID,
+//           },
+//         });
+
+//         if (botData) {
+//           const latestEntryWithSameUser = await miniCart.findOne({
+//             where: {
+//               userName: req.user.email,
+//             },
+//             order: [['createdAt', 'DESC']],
+//           });
+
+//           let orderID;
+//           if (latestEntryWithSameUser) {
+//             orderID = latestEntryWithSameUser.orderID;
+//           } else {
+//             const latestEntryOverall = await miniCart.findOne({
+//               order: [['createdAt', 'DESC']],
+//             });
+//             let startOfOrderId = latestEntryOverall
+//               ? parseInt(latestEntryOverall.orderID.substring(1)) || 0
+//               : 0;
+//             orderID = `#${startOfOrderId.toString().padStart(4, '0')}`;
+//           }
+
+//           result = await miniCart.create({
+//             userName: req.user.email,
+//             skillID: BotIDorSkillID,
+//             skillName: botData.dataValues.processName,
+//             skillDescription: botData.dataValues.processDescription,
+//             price: 6,
+//             orderID: orderID
+//           });
+//         } else {
+//           return res.status(404).json({
+//             success: false,
+//             message: 'Bot ID not found',
+//             code: 404,
+//           });
+//         }
+//       }
+//     } else {
+//       BotIDorSkillID = skillID;
+
+//       const existingCartItem = await miniCart.findOne({
+//         where: {
+//           userName: req.user.email,
+//           skillID: BotIDorSkillID,
+//         },
+//       });
+
+//       if (existingCartItem) {
+//         await miniCart.destroy({
+//           where: {
+//             userName: req.user.email,
+//             skillID: BotIDorSkillID,
+//           },
+//         });
+
+//         return res.status(200).json({
+//           success: true,
+//           message: 'Skill removed from the cart',
+//           code: 200,
+//         });
+//       } else {
+//         const softSkillData = await softSkill.findOne({
+//           where: {
+//             softSkillID: BotIDorSkillID,
+//           },
+//         });
+
+//         if (softSkillData) {
+//           const latestEntryWithSameUser = await miniCart.findOne({
+//             where: {
+//               userName: req.user.email,
+//             },
+//             order: [['createdAt', 'DESC']],
+//           });
+
+//           let orderID;
+//           if (latestEntryWithSameUser) {
+//             orderID = latestEntryWithSameUser.orderID;
+//           } else {
+//             const latestEntryOverall = await miniCart.findOne({
+//               order: [['createdAt', 'DESC']],
+//             });
+//             let startOfOrderId = latestEntryOverall
+//               ? parseInt(latestEntryOverall.orderID.substring(1)) || 0
+//               : 0;
+//             orderID = `#${startOfOrderId.toString().padStart(4, '0')}`;
+//           }
+
+//           result = await miniCart.create({
+//             userName: "ritik.bhadauria@unilever.com",
+//             skillID: BotIDorSkillID,
+//             skillName: softSkillData.dataValues.skillName,
+//             skillDescription: softSkillData.dataValues.skillDescription,
+//             price: softSkillData.dataValues.price,
+//             orderID: orderID
+//           });
+//         } else {
+//           return res.status(404).json({
+//             success: false,
+//             message: 'Soft Skill ID not found',
+//             code: 404,
+//           });
+//         }
+//       }
+//     }
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Skill added to the cart',
+//       result: result,
+//       code: 200,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, error: 'Server error', code: 500 });
+//   }
+// });
+
+
 const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
   try {
     const { skillID } = req.query;
@@ -7312,7 +7476,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
     let BotIDorSkillID = '';
     let result = null;
 
-
     if (!isNaN(Number(skillID))) {
       BotIDorSkillID = Number(skillID);
 
@@ -7320,6 +7483,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
         where: {
           userName: req.user.email,
           skillID: BotIDorSkillID,
+          status: 0
         },
       });
 
@@ -7328,6 +7492,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
           where: {
             userName: req.user.email,
             skillID: BotIDorSkillID,
+            status: 0
           },
         });
 
@@ -7344,13 +7509,68 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
         });
 
         if (botData) {
-          result = await miniCart.create({
-            userName: req.user.email,
-            skillID: BotIDorSkillID,
-            skillName: botData.dataValues.processName,
-            skillDescription: botData.dataValues.processDescription,
-            price: 6,
+          let orderID;
+       
+          const sameOrderbyUser = await miniCart.findOne({
+              where: {
+                status: 0,
+              }
           });
+
+          if(sameOrderbyUser){
+
+            if(sameOrderbyUser.userName == req.user.email){
+              
+                orderID = sameOrderbyUser.orderID
+
+                result = await miniCart.create({
+                  userName: req.user.email,
+                  skillID: BotIDorSkillID,
+                  skillName: botData.dataValues.processName,
+                  skillDescription: botData.dataValues.processDescription,
+                  price: 6,
+                  orderID: orderID,
+                  status: 0, // Set the status to 0
+                });   
+            }
+            else{
+
+              const min = 1000000000; 
+              const max = 9999999999; 
+
+              orderID = Math.floor(Math.random() * (max - min + 1)) + min;
+
+              result = await miniCart.create({
+                userName: req.user.email,
+                skillID: BotIDorSkillID,
+                skillName: botData.dataValues.processName,
+                skillDescription: botData.dataValues.processDescription,
+                price: 6,
+                orderID: orderID,
+                status: 0, 
+              });
+
+            }
+
+          }
+          else{
+
+            const min = 1000000000; 
+            const max = 9999999999; 
+
+            orderID = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            result = await miniCart.create({
+              userName: req.user.email,
+              skillID: BotIDorSkillID,
+              skillName: botData.dataValues.processName,
+              skillDescription: botData.dataValues.processDescription,
+              price: 6,
+              orderID: orderID,
+              status: 0, 
+            });
+
+          }
 
         } else {
           return res.status(404).json({
@@ -7367,6 +7587,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
         where: {
           userName: req.user.email,
           skillID: BotIDorSkillID,
+          status: 0
         },
       });
 
@@ -7375,6 +7596,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
           where: {
             userName: req.user.email,
             skillID: BotIDorSkillID,
+            status: 0
           },
         });
 
@@ -7391,15 +7613,70 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
         });
 
         if (softSkillData) {
-          result = await miniCart.create({
-            userName: req.user.email,
-            skillID: BotIDorSkillID,
-            skillName: softSkillData.dataValues.skillName,
-            skillDescription: softSkillData.dataValues.skillDescription,
-            price: softSkillData.dataValues.price,
+
+
+          let orderID;
+       
+          const sameOrderbyUser = await miniCart.findOne({
+              where: {
+                status: 0,
+              }
           });
 
+          if(sameOrderbyUser){
 
+            if(sameOrderbyUser.userName == req.user.email){
+              
+                orderID = sameOrderbyUser.orderID
+
+                result = await miniCart.create({
+                  userName: req.user.email,
+                  skillID: BotIDorSkillID,
+                  skillName: softSkillData.dataValues.skillName,
+                  skillDescription: softSkillData.dataValues.skillDescription,
+                  price: softSkillData.dataValues.price,
+                  orderID: orderID,
+                  status: 0, 
+                }); 
+            }
+            else{
+
+              const min = 1000000000; 
+              const max = 9999999999; 
+
+              orderID = Math.floor(Math.random() * (max - min + 1)) + min;
+
+              result = await miniCart.create({
+                userName: req.user.email,
+                skillID: BotIDorSkillID,
+                skillName: softSkillData.dataValues.skillName,
+                skillDescription: softSkillData.dataValues.skillDescription,
+                price: softSkillData.dataValues.price,
+                orderID: orderID,
+                status: 0, 
+              });
+
+            }
+
+          }
+          else{
+
+            const min = 1000000000; 
+            const max = 9999999999; 
+
+            orderID = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            result = await miniCart.create({
+              userName: req.user.email,
+              skillID: BotIDorSkillID,
+              skillName: softSkillData.dataValues.skillName,
+              skillDescription: softSkillData.dataValues.skillDescription,
+              price: softSkillData.dataValues.price,
+              orderID: orderID,
+              status: 0, // Set the status to 0
+            });
+
+          }
         } else {
           return res.status(404).json({
             success: false,
@@ -7413,14 +7690,15 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
       success: true,
       message: 'Skill added to the cart',
       result: result,
-      code: 200
+      code: 200,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Server error', code: 500 });
   }
 });
+
+
 
 const getselectedSkills = catchAsync(async (req, res, next) => {
   try {
@@ -7431,6 +7709,7 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
     const result = await miniCart.findAll({
       where: {
         userName: user,
+        status: 0
       },
     });
 
@@ -7444,7 +7723,10 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
 
     result.forEach((data) => {
       totalPrice += data.dataValues.price;
+      data.dataValues.status = -1
     });
+
+    await miniCart.update({ status: -1 }, { where: { userName: user, status: 0 } });
 
     const response = {
       totalItemsInMiniCart: result.length,
@@ -7477,7 +7759,8 @@ const deleteSelectedSkill = catchAsync(async (req, res, next) => {
     const deleteItem = await miniCart.destroy({
       where: {
         userName : user,
-        skillId: skillID
+        skillId: skillID,
+        status: 0
     }
   }) 
 
@@ -7500,6 +7783,7 @@ const createCartFormDataEntry = async (req, res, next) => {
     const {
       employeeTwinID,
       status,
+      orderID,
       ET_name,
       functionField,
       region,
@@ -7539,17 +7823,18 @@ const createCartFormDataEntry = async (req, res, next) => {
         To_cost_centre,
         commentText,
         commentType,
+        orderID,
         orderStatus: status == 1 ? status : 0,
       });
 
       response = existingUser;
     } else {
-      const latestEntry = await cartFormData.findOne({
-        order: [['createdAt', 'DESC']],
-      });
+      // const latestEntry = await cartFormData.findOne({
+      //   order: [['createdAt', 'DESC']],
+      // });
 
-      let startOfOrderId = latestEntry ? parseInt(latestEntry.orderID.substring(1)) + 1 : 1;
-      let orderID = `#${startOfOrderId.toString().padStart(4, '0')}`;
+      // let startOfOrderId = latestEntry ? parseInt(latestEntry.orderID.substring(1)) + 1 : 1;
+      // let orderID = `#${startOfOrderId.toString().padStart(4, '0')}`;
 
       const checkUserPlacedOrder = await cartFormData.findAll({
         where: {
@@ -7595,6 +7880,7 @@ const createCartFormDataEntry = async (req, res, next) => {
 
     if (mailData) {
       // send email to the user with the details of the form data
+
       try {
         let mailerObject = {
           mailData: mailData,
@@ -7602,8 +7888,13 @@ const createCartFormDataEntry = async (req, res, next) => {
           type: 'Product order mail',
         };
 
+        await miniCart.update({ status: 1 }, { where: { userName: mailerObject.user.email, status: -1 } });
+        
         await productOrderMail(mailerObject);
         console.log('mailerObject', mailerObject);
+
+        // await miniCart.update({ status: 1 }, { where: { userName: user, status: 0 } });
+
       } catch (e) {
         console.log('Error sending mail', e);
       }

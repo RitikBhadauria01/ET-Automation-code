@@ -25,20 +25,28 @@ const miniCart = sequelize.define('miniCart', {
         type: DataTypes.STRING,
         allowNull: true,
         //primaryKey: true,
-      },
+    },
     price:{
         type:DataTypes.FLOAT,
         allowNull:true
     },
-    createdAt: {
+    orderID:{
+      type:DataTypes.STRING,
+      allowNull: true,
+    },
+    status:{
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    createdAt:{
         type: DataTypes.DATEONLY,
-
         allowNull: true,
-      },
-      updatedAt: {
+    },
+    updatedAt: {
         type: DataTypes.DATEONLY,
         allowNull: true,
-      },
+    }
   });
 
   export default miniCart;
