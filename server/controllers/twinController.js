@@ -7614,7 +7614,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
 
         if (softSkillData) {
 
-
           let orderID;
        
           const sameOrderbyUser = await miniCart.findOne({
@@ -7698,8 +7697,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
   }
 });
 
-
-
 const getselectedSkills = catchAsync(async (req, res, next) => {
   try {
     await miniCart.sync();
@@ -7723,10 +7720,7 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
 
     result.forEach((data) => {
       totalPrice += data.dataValues.price;
-      data.dataValues.status = -1
     });
-
-    await miniCart.update({ status: -1 }, { where: { userName: user, status: 0 } });
 
     const response = {
       totalItemsInMiniCart: result.length,
@@ -7800,6 +7794,8 @@ const createCartFormDataEntry = async (req, res, next) => {
     } = req.body;
 
     let response;
+
+    await miniCart.update({ status: 1 }, { where: { userName: req.user.email, status: 0 } });
 
     const existingUser = await cartFormData.findOne({
       where: {
@@ -7887,8 +7883,6 @@ const createCartFormDataEntry = async (req, res, next) => {
           user: req.user,
           type: 'Product order mail',
         };
-
-        await miniCart.update({ status: 1 }, { where: { userName: mailerObject.user.email, status: -1 } });
         
         await productOrderMail(mailerObject);
         console.log('mailerObject', mailerObject);
