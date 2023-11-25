@@ -13,7 +13,7 @@ import Sequelize from '../helpers/Sequalize';
 import sequelize,{Op} from 'sequelize';
 
 ////
-import {feedbackMail, randomMail,orderMail, CheckoutMail,addSkillMail,deleteSkillMail,costControlMail } from './mailerController';
+import {feedbackMail, randomMail,orderMail, CheckoutMail,addSkillMail,deleteSkillMail,costControlMail, productOrderMail } from './mailerController';
 
 ////
 import ET_cart from '../models/ET_Cart_new';
@@ -40,6 +40,7 @@ const fs = require('fs');
 import et_user from '../models/ET_user';
 import newUserUnilever from '../models/newUser';
 import { log } from 'console';
+import { start } from 'repl';
 
 
 
@@ -359,7 +360,7 @@ const botSearch = catchAsync(async (req, res, next) => {
       const averageRating = totalRating / ratings.length;
       
       if (!isNaN(averageRating)) {
-        data_json[i].averageRating = averageRating;
+        data_json[i].averageRating = parseFloat(averageRating.toFixed(1));
       } else {
         // Handle the case where the average is NaN (e.g., no valid ratings)
         data_json[i].averageRating = 0; // Default to 0 if no valid ratings
@@ -1589,30 +1590,7 @@ else if (req.path == '/product/deletepurchaseCart'){
 
   });
 
-//order mail data API
-const orderMailData = catchAsync(async (req, res, next) => {
-  try {
-    const {orderID} = req.body;
-console.log("orderID",orderID);
-    const addData = await ET_order.ET_order.findOne({
-      where: {
-        orderID : orderID
-      },
-      raw: true
-    });
-console.log("addData",addData);
-    let mailerObject = {
-      randomData: addData,
-      user: req.user,
-      type: 'order mail',
-    };
-    await orderMail(mailerObject);
-console.log("mailerObject",mailerObject);
-    res.send(new ResponseObject(200, 'order mail api', true, addData));
-  } catch (error) {
-    res.status(400).send(error);
-  }
-});
+
 
   const searchSoftSkill=catchAsync(async(req,res,next)=>{
     try {
@@ -6358,6 +6336,375 @@ console.log("resultresultresult 2584 cogitiveRunCost 11233344",resultSum);
 });
 
 //pdf api-08112023 
+// const generatePDFAPI = catchAsync(async (req, res) => {
+//   try {
+
+//     const pdfDoc = req.body;
+
+//     let empTwin = await employeeTwin.employeeTwin.sync();
+
+//     let CostPerSkill = await Cost_per_Skill.sync();
+
+//       if(!pdfDoc.EmpID){
+//         return res.status(402).json({
+//           status: "Failed",
+//           message: "ETID is missing",
+//         })
+//       }
+  
+//       const empTwins =  await empTwin.findOne({
+//         where: {
+//           employeeTwinID: pdfDoc.EmpID
+//         },
+//         attributes: [
+//           "employeeTwinName",
+//           "transactions",
+//           "reporting",
+//           "cognitive",
+//           "decisionautomations"
+//         ],
+//       })
+
+//       if(!empTwins && !pdfDoc.type){
+//         return res.status(402).json({
+//           status: "Failed",
+//           message: "No ET user exist with the provided ETID",
+//         })         
+//       }else if(!empTwins && pdfDoc.type == "Automated"){
+//         return
+//       }
+  
+//       const transactionsArray = empTwins.dataValues.transactions ? empTwins.dataValues.transactions.split(',') : [];
+//       const reportingArray = empTwins.dataValues.reporting ? empTwins.dataValues.reporting.split(',') : [];
+//       const cognitiveArray = empTwins.dataValues.cognitive ? empTwins.dataValues.cognitive.split(',') : [];
+//       const decisionautomationsArray = empTwins.dataValues.decisionautomations ? empTwins.dataValues.decisionautomations.split(',') : [];
+  
+  
+//       const mergedArray = transactionsArray.concat(reportingArray, cognitiveArray,decisionautomationsArray);
+
+//       const months = ["NAN",
+//         "January", "February", "March", "April",
+//         "May", "June", "July", "August",
+//         "September", "October", "November", "December"
+//       ];
+
+//       let calculatedMonthIndex = 0
+  
+//       if(pdfDoc.billingMonth){
+//           let twoDigitMonth = pdfDoc.billingMonth.slice(-2)
+//           if(twoDigitMonth[0] == "0"){
+//              let oneDigitMonth = twoDigitMonth.slice(1,2);
+//              calculatedMonthIndex = parseInt(oneDigitMonth);
+//           }
+//           else{
+//             calculatedMonthIndex = parseInt(twoDigitMonth);
+//           }
+//       }
+
+//       const currentMonth = pdfDoc.month ? pdfDoc.month : months[calculatedMonthIndex];
+
+//       const getCurrentYear = pdfDoc.dataOfYear ? pdfDoc.dataOfYear : pdfDoc.billingMonth.slice(0,4)
+
+//       const SkillDetails = await CostPerSkill.findAll({
+//         where: {
+//           BotId: mergedArray,
+//           Month: currentMonth,
+//           Year: getCurrentYear
+//         },
+//         attributes: [
+//           "RunCost",
+//           "SkillName",
+//           "BotId"
+//         ],
+//       })
+
+//       if(!SkillDetails && !pdfDoc.type){
+//         return res.status(402).json({
+//           status: "Failed",
+//           message: "No Skills for ET user",
+//         })
+//       }else if(!SkillDetails && pdfDoc.type == "Automated"){
+//         return
+//       }
+  
+  
+//       let totalRunCost = 0;
+  
+//       SkillDetails.forEach((data) => {
+//         totalRunCost += parseFloat(data.dataValues.RunCost)
+//       })
+  
+//       // Limit to two decimal places
+//       totalRunCost = totalRunCost.toFixed(2);
+  
+//       let currentYear = new Date();
+//       let shortYear = currentYear.getFullYear(); 
+//       let twoDigitYear = shortYear.toString().substr(-2);
+  
+  
+//       // Create a PDF document
+//       const doc = new PDFDocument();
+  
+  
+//       // Pipe the PDF output to a file
+//       const filePath = path.resolve(__dirname, `../../../assets/pdf/RunCost_${currentMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf` );
+//       const stream = fs.createWriteStream(filePath);
+//       doc.pipe(stream);
+      
+//       // Add company logo
+//       const logoPath = path.resolve(__dirname, '../../../assets/images/HAP_logo.png')
+//       doc.image(logoPath, 500, 20, { width: 100 });
+  
+//       const ETlogoPath = path.resolve(__dirname, '../../../assets/images/ET.png')
+//       doc.image(ETlogoPath, 8, 4, { width: 90 });
+  
+//       // Set up table layout
+//       const tableTop = 120; // Adjust the top position of the table
+//       let horRows = 135;
+//       let column1 = 150; // Adjust the left position of the first column
+//       let column2 = 350; // Adjust the left position of the second column
+//       let textstart = 70;
+//       const rowHeight = 22; // Adjust the height of each row
+  
+//       doc.text(`Below are the billing details for ${empTwins.dataValues.employeeTwinName} for the month of ${currentMonth} :`, textstart, tableTop-40);
+  
+//       // Draw table headers with bold font
+//       doc.font('Helvetica-Bold').text('Requirement', column1 + 40, tableTop);
+//       doc.font('Helvetica-Bold').text('Comment', column2 , tableTop);
+  
+      
+//       // Draw horizontal lines
+//       doc.moveTo(column1, tableTop - 10 ).lineTo(column2 + 100, tableTop - 10).stroke();
+//       doc.moveTo(column1, tableTop + 15).lineTo(column2 + 100, tableTop + 15).stroke();
+  
+//       for (let i = 1; i <= 9; i++) {
+//         doc.moveTo(column1, horRows + i * rowHeight).lineTo(column2 + 100, horRows + i * rowHeight).stroke();
+//       }
+  
+//       // Draw vertical lines for table columns
+//       doc.moveTo(column1, tableTop - 10).lineTo(column1, tableTop + 213).stroke();
+//       doc.moveTo(column2 - 40, tableTop - 10).lineTo(column2 - 40, tableTop + 213).stroke();
+//       doc.moveTo(column2 + 100, tableTop - 10).lineTo(column2 + 100, tableTop + 213).stroke(); // Third vertical line
+      
+//       // Draw table rows
+//       let yPos = tableTop + 22; // Start position for the first row
+  
+//       let updatecolumn1 = column1 + 20;
+  
+//       let updatecolumn2 = column2 - 20;
+      
+//       // Set the font back to the default for the rest of the document
+//       doc.font('Helvetica');
+  
+//       doc.text("ET Name", updatecolumn1, yPos);
+//       doc.text(empTwins.dataValues.employeeTwinName, updatecolumn2, yPos);
+  
+//       doc.text("Month of billing", updatecolumn1, yPos + 22);
+//       doc.text(currentMonth, updatecolumn2, yPos + 22);
+  
+//       doc.text("Business Approver", updatecolumn1, yPos + 45);
+//       doc.text(pdfDoc.businessApprover, updatecolumn2, yPos + 45);
+  
+//       doc.text("Cost Center Owner", updatecolumn1, yPos + 66);
+//       doc.text(pdfDoc.costCenter, updatecolumn2, yPos + 66);
+  
+//       doc.text("To Cost centre", updatecolumn1, yPos + 89);
+//       doc.text(pdfDoc.toCostCenter, updatecolumn2, yPos + 89);
+  
+//       doc.text("GL Account", updatecolumn1, yPos + 111);
+//       doc.text(pdfDoc.glAccount, updatecolumn2, yPos + 111);
+  
+//       doc.text("To Co. Code", updatecolumn1, yPos + 134);
+//       doc.text(pdfDoc.toCompanyCode, updatecolumn2, yPos + 134);
+  
+//       doc.text("Country Code", updatecolumn1, yPos + 154);
+//       doc.text(pdfDoc.countryCode, updatecolumn2, yPos + 154);
+  
+//       doc.text("Total Run-Cost", updatecolumn1, yPos + 176);
+//       doc.text(totalRunCost, updatecolumn2, yPos + 176);
+  
+  
+//       let secondTableHeight = 420;
+  
+//       doc.text(`Below is the detailed summary of the cost :`, textstart, secondTableHeight - 40);
+  
+  
+//       let secondCol1 = 100;
+//       let secondCol2 = 270;
+//       let secondCol3 = 440;
+  
+//       doc.moveTo(secondCol1-50, secondTableHeight - 10 ).lineTo(secondCol3 + 100, secondTableHeight - 10).stroke();
+//       doc.moveTo(secondCol1-50, secondTableHeight + 15).lineTo(secondCol3 + 100, secondTableHeight + 15).stroke();
+      
+//       // Draw table headers with bold font
+//       doc.font('Helvetica-Bold').text('Skill Name', secondCol1 , secondTableHeight);
+//       doc.font('Helvetica-Bold').text('Skill Type', secondCol2 + 10 , secondTableHeight);
+//       doc.font('Helvetica-Bold').text('Run Cost', secondCol3 , secondTableHeight);
+  
+//       let rowValue = 0
+  
+//       doc.font('Helvetica');
+  
+//       let secondTabelRow = secondTableHeight + 15;
+
+//       console.log("SkillDetailsSkillDetailsSkillDetails",SkillDetails)
+  
+//       const finalValues = SkillDetails.map((i)=>{
+  
+//         let botId = i.dataValues.BotId
+       
+//         const isInTransactions = transactionsArray ? transactionsArray.includes(botId) : false;
+//         const isInReporting = reportingArray ? reportingArray.includes(botId) : false;
+//         const isInCognitive = cognitiveArray ? cognitiveArray.includes(botId) : false;
+//         const isInDecisionAutomations = decisionautomationsArray ? decisionautomationsArray.includes(botId) : false;
+  
+//         return {
+//           skillName: i.dataValues.SkillName,
+//           skillType: isInTransactions ? 'Transactions' : isInReporting ? 'Reporting' : isInCognitive ? 'Cognitive' : isInDecisionAutomations ? 'Decision Automations' : 'Unknown',
+//           runCost: i.dataValues.RunCost
+//         };
+//       })
+
+//       // const doubleRowHeightThreshold = 175;
+      
+//       // for (let i = 1; i <= finalValues.length; i++) {
+
+//       //   const skillNameWidth = doc.widthOfString(finalValues[i - 1].skillName);
+//       //   const currentRowHeight = skillNameWidth > doubleRowHeightThreshold ? rowHeight * 2: rowHeight;
+
+//       //   doc.moveTo(secondCol1 - 50, secondTabelRow  + i * (currentRowHeight == rowHeight ? rowHeight : currentRowHeight)).lineTo(secondCol3 + 100, secondTabelRow + i * (currentRowHeight == rowHeight ? rowHeight : currentRowHeight)).stroke();
+
+//       //   rowValue += rowHeight
+//       //   doc.text(finalValues[i-1].skillName,secondCol1 - 45, secondTabelRow + i * rowHeight -15, {width: 175});
+//       //   doc.text(finalValues[i-1].skillType, secondCol2 - 30, secondTabelRow + i * rowHeight - 15);
+//       //   doc.text(finalValues[i-1].runCost, secondCol3 - 30, secondTabelRow + i * rowHeight -15);
+//       // }
+  
+//       // // Draw vertical lines for table columns
+//       // doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
+//       // doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
+//       // doc.moveTo(secondCol3 - 40 , secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
+//       // doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
+  
+      
+
+
+
+
+
+
+
+// let currentRowHeight = 0;
+
+// let doubleRowHeightThreshold = 175;
+
+
+// for (let i = 1; i <= finalValues.length; i++) {
+//     const skillNameWidth = doc.widthOfString(finalValues[i - 1].skillName);
+
+//     console.log(`skillNameWidth of ${finalValues[i - 1].skillName}`, skillNameWidth);
+
+//     // const currentRowHeight = skillNameWidth > doubleRowHeightThreshold ? rowHeight + 6: rowHeight;
+
+
+//     let overlapped = 0 
+
+//     if (skillNameWidth > doubleRowHeightThreshold) {
+
+//       doc
+//       .moveTo(secondCol1 - 50, secondTabelRow + i * (rowHeight + 4))
+//       .lineTo(secondCol3 + 100, secondTabelRow + i * (rowHeight + 4))
+//       .stroke();
+
+//       rowValue += (rowHeight + 4);
+//     }
+
+//     if (!(skillNameWidth > doubleRowHeightThreshold)) {
+        
+//       doc
+//       .moveTo(secondCol1 - 50, secondTabelRow + i * rowHeight)
+//       .lineTo(secondCol3 + 100, secondTabelRow + i * rowHeight)
+//       .stroke();
+
+//       rowValue += rowHeight;
+
+//     }
+
+
+   
+
+//     // const currentRowHeight = rowHeight;
+
+    
+
+//     // doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : overlapped == 0 ? currentRowHeight : overlapped - 4) - 15, {
+//     //     width: 175,
+//     // }); 
+//     // doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight) - 15);
+//     // doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight) - 15);
+
+
+//   //   doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * () - 15, {
+//   //     width: 175,
+//   // });
+//   // doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * (currentRowHeight === rowHeight ? rowHeight : currentRowHeight > rowHeight ? currentRowHeight - 4 : currentRowHeight) - 15);
+//   // doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * (currentRowHeight === rowHeight ? rowHeight : currentRowHeight > rowHeight ? currentRowHeight - 4 : currentRowHeight) - 15);
+  
+// }
+
+// // Draw vertical lines for table columns using the updated rowValue
+// doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
+// doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
+// doc.moveTo(secondCol3 - 40, secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
+// doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
+
+
+
+  
+//       // Finalize the PDF
+//       doc.end();
+  
+//       // let fileName = `assets/pdf/RunCost_${pdfDoc.billingMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf`;
+  
+//       // const azureResponse = await azureConnection.uploadLocalFile('pdfFileStore', fileName);
+  
+//       // console.log('Export All Azure response ---', azureResponse);
+  
+//       // console.log("Pdf generated successfully!")
+
+//       console.log("pdfDocpdfDocpdfDocpdfDoc",pdfDoc)
+
+//       if(!pdfDoc.type){
+//         setTimeout(()=>{
+  
+//           const pdfFileName = `RunCost_${currentMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf`;
+//           const filePath = path.resolve(__dirname, `../../../assets/pdf/RunCost_${currentMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf`);
+      
+//           // Check if the file exists
+//           if (fs.existsSync(filePath)) {
+//             // Set the Content-Disposition header for download
+//             res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(pdfFileName)}`);
+//             res.setHeader('Content-Type', 'application/pdf');
+      
+//             // Send the file as a response
+//             res.sendFile(filePath);
+            
+//             console.log('File has been downloaded');
+//           } else {
+//             res.status(404).json({
+//               message: 'File not found',
+//               code: 404,
+//             });
+//           } 
+//          },1000) 
+//       }
+//   } catch (e) {
+//     console.log('error = ', e);
+//     return res.status(500).json({ error: e });
+//   }
+// });
+
+
 const generatePDFAPI = catchAsync(async (req, res) => {
   try {
 
@@ -6373,7 +6720,7 @@ const generatePDFAPI = catchAsync(async (req, res) => {
           message: "ETID is missing",
         })
       }
-  
+
       const empTwins =  await empTwin.findOne({
         where: {
           employeeTwinID: pdfDoc.EmpID
@@ -6391,17 +6738,17 @@ const generatePDFAPI = catchAsync(async (req, res) => {
         return res.status(402).json({
           status: "Failed",
           message: "No ET user exist with the provided ETID",
-        })         
+        })
       }else if(!empTwins && pdfDoc.type == "Automated"){
         return
       }
-  
+
       const transactionsArray = empTwins.dataValues.transactions ? empTwins.dataValues.transactions.split(',') : [];
       const reportingArray = empTwins.dataValues.reporting ? empTwins.dataValues.reporting.split(',') : [];
       const cognitiveArray = empTwins.dataValues.cognitive ? empTwins.dataValues.cognitive.split(',') : [];
       const decisionautomationsArray = empTwins.dataValues.decisionautomations ? empTwins.dataValues.decisionautomations.split(',') : [];
-  
-  
+
+
       const mergedArray = transactionsArray.concat(reportingArray, cognitiveArray,decisionautomationsArray);
 
       const months = ["NAN",
@@ -6411,7 +6758,7 @@ const generatePDFAPI = catchAsync(async (req, res) => {
       ];
 
       let calculatedMonthIndex = 0
-  
+
       if(pdfDoc.billingMonth){
           let twoDigitMonth = pdfDoc.billingMonth.slice(-2)
           if(twoDigitMonth[0] == "0"){
@@ -6448,38 +6795,38 @@ const generatePDFAPI = catchAsync(async (req, res) => {
       }else if(!SkillDetails && pdfDoc.type == "Automated"){
         return
       }
-  
-  
+
+
       let totalRunCost = 0;
-  
+
       SkillDetails.forEach((data) => {
         totalRunCost += parseFloat(data.dataValues.RunCost)
       })
-  
+
       // Limit to two decimal places
       totalRunCost = totalRunCost.toFixed(2);
-  
+
       let currentYear = new Date();
-      let shortYear = currentYear.getFullYear(); 
+      let shortYear = currentYear.getFullYear();
       let twoDigitYear = shortYear.toString().substr(-2);
-  
-  
+
+
       // Create a PDF document
       const doc = new PDFDocument();
-  
-  
+
+
       // Pipe the PDF output to a file
       const filePath = path.resolve(__dirname, `../../../assets/pdf/RunCost_${currentMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf`);
       const stream = fs.createWriteStream(filePath);
       doc.pipe(stream);
-      
+
       // Add company logo
       const logoPath = path.resolve(__dirname, '../../../assets/images/HAP_logo.png')
       doc.image(logoPath, 500, 20, { width: 100 });
-  
+
       const ETlogoPath = path.resolve(__dirname, '../../../assets/images/ET.png')
       doc.image(ETlogoPath, 8, 4, { width: 90 });
-  
+
       // Set up table layout
       const tableTop = 120; // Adjust the top position of the table
       let horRows = 135;
@@ -6487,228 +6834,186 @@ const generatePDFAPI = catchAsync(async (req, res) => {
       let column2 = 350; // Adjust the left position of the second column
       let textstart = 70;
       const rowHeight = 22; // Adjust the height of each row
-  
+
       doc.text(`Below are the billing details for ${empTwins.dataValues.employeeTwinName} for the month of ${currentMonth} :`, textstart, tableTop-40);
-  
+
       // Draw table headers with bold font
       doc.font('Helvetica-Bold').text('Requirement', column1 + 40, tableTop);
       doc.font('Helvetica-Bold').text('Comment', column2 , tableTop);
-  
-      
+
+
       // Draw horizontal lines
       doc.moveTo(column1, tableTop - 10 ).lineTo(column2 + 100, tableTop - 10).stroke();
       doc.moveTo(column1, tableTop + 15).lineTo(column2 + 100, tableTop + 15).stroke();
-  
+
       for (let i = 1; i <= 9; i++) {
         doc.moveTo(column1, horRows + i * rowHeight).lineTo(column2 + 100, horRows + i * rowHeight).stroke();
       }
-  
+
       // Draw vertical lines for table columns
       doc.moveTo(column1, tableTop - 10).lineTo(column1, tableTop + 213).stroke();
       doc.moveTo(column2 - 40, tableTop - 10).lineTo(column2 - 40, tableTop + 213).stroke();
       doc.moveTo(column2 + 100, tableTop - 10).lineTo(column2 + 100, tableTop + 213).stroke(); // Third vertical line
-      
+
       // Draw table rows
       let yPos = tableTop + 22; // Start position for the first row
-  
+
       let updatecolumn1 = column1 + 20;
-  
+
       let updatecolumn2 = column2 - 20;
-      
+
       // Set the font back to the default for the rest of the document
       doc.font('Helvetica');
-  
+
       doc.text("ET Name", updatecolumn1, yPos);
       doc.text(empTwins.dataValues.employeeTwinName, updatecolumn2, yPos);
-  
+
       doc.text("Month of billing", updatecolumn1, yPos + 22);
       doc.text(currentMonth, updatecolumn2, yPos + 22);
-  
+
       doc.text("Business Approver", updatecolumn1, yPos + 45);
       doc.text(pdfDoc.businessApprover, updatecolumn2, yPos + 45);
-  
+
       doc.text("Cost Center Owner", updatecolumn1, yPos + 66);
       doc.text(pdfDoc.costCenter, updatecolumn2, yPos + 66);
-  
+
       doc.text("To Cost centre", updatecolumn1, yPos + 89);
       doc.text(pdfDoc.toCostCenter, updatecolumn2, yPos + 89);
-  
+
       doc.text("GL Account", updatecolumn1, yPos + 111);
       doc.text(pdfDoc.glAccount, updatecolumn2, yPos + 111);
-  
+
       doc.text("To Co. Code", updatecolumn1, yPos + 134);
       doc.text(pdfDoc.toCompanyCode, updatecolumn2, yPos + 134);
-  
       doc.text("Country Code", updatecolumn1, yPos + 154);
       doc.text(pdfDoc.countryCode, updatecolumn2, yPos + 154);
-  
+
       doc.text("Total Run-Cost", updatecolumn1, yPos + 176);
       doc.text(totalRunCost, updatecolumn2, yPos + 176);
-  
-  
+
+
       let secondTableHeight = 420;
-  
+
       doc.text(`Below is the detailed summary of the cost :`, textstart, secondTableHeight - 40);
-  
-  
+
+
       let secondCol1 = 100;
       let secondCol2 = 270;
       let secondCol3 = 440;
-  
+
       doc.moveTo(secondCol1-50, secondTableHeight - 10 ).lineTo(secondCol3 + 100, secondTableHeight - 10).stroke();
       doc.moveTo(secondCol1-50, secondTableHeight + 15).lineTo(secondCol3 + 100, secondTableHeight + 15).stroke();
-      
-      // Draw table headers with bold font
-      doc.font('Helvetica-Bold').text('Skill Name', secondCol1 , secondTableHeight);
-      doc.font('Helvetica-Bold').text('Skill Type', secondCol2 + 10 , secondTableHeight);
-      doc.font('Helvetica-Bold').text('Run Cost', secondCol3 , secondTableHeight);
+ // Draw table headers with bold font
+ doc.font('Helvetica-Bold').text('Skill Name', secondCol1 , secondTableHeight);
+ doc.font('Helvetica-Bold').text('Skill Type', secondCol2 + 10 , secondTableHeight);
+ doc.font('Helvetica-Bold').text('Run Cost', secondCol3 , secondTableHeight);
+
+ let rowValue = 0
+
+ doc.font('Helvetica');
+
+ let secondTabelRow = secondTableHeight + 15;
+
+ console.log("SkillDetailsSkillDetailsSkillDetails",SkillDetails)
+
+ const finalValues = SkillDetails.map((i)=>{
+
+   let botId = i.dataValues.BotId
+
+   const isInTransactions = transactionsArray ? transactionsArray.includes(botId) : false;
+   const isInReporting = reportingArray ? reportingArray.includes(botId) : false;
+   const isInCognitive = cognitiveArray ? cognitiveArray.includes(botId) : false;
+   const isInDecisionAutomations = decisionautomationsArray ? decisionautomationsArray.includes(botId) : false;
+
+   return {
+     skillName: i.dataValues.SkillName,
+     skillType: isInTransactions ? 'Transactions' : isInReporting ? 'Reporting' : isInCognitive ? 'Cognitive' : isInDecisionAutomations ? 'Decision Automations' : 'Unknown',
+     runCost: i.dataValues.RunCost
+   };
+ })
+
+ const minimumRowHeight = 30; 
+ let doubleRowHeightThreshold = 175;
+
+ for (let i = 1; i <= finalValues.length; i++) {
+
+  const skillNameWidth = doc.widthOfString(finalValues[i - 1].skillName);
+
+
+  const skillNameX = secondCol1 - 45;
+  const skillNameY = secondTabelRow + i * rowHeight - 15;
+
+  // Calculate the height of the row based on the content of the skill name
+  const skillNameHeight = doc.heightOfString(finalValues[i - 1].skillName, { width: secondCol2 - skillNameX - 10 });
+
+  // Choose a minimum row height and set it to the maximum of the calculated height and the minimum height
+  const dynamicRowHeight = Math.max(minimumRowHeight, skillNameHeight);
+
+  doc.moveTo(secondCol1 - 50, secondTabelRow + i * dynamicRowHeight).lineTo(secondCol3 + 100, secondTabelRow + i * dynamicRowHeight).stroke();
+  rowValue += dynamicRowHeight;
+  skillNameWidth > doubleRowHeightThreshold ? doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * dynamicRowHeight - 26, { width: 175 }) : doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * dynamicRowHeight - 20, { width: 175 })
   
-      let rowValue = 0
-  
-      doc.font('Helvetica');
-  
-      let secondTabelRow = secondTableHeight + 15;
+  doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * dynamicRowHeight - 20);
+  doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * dynamicRowHeight - 20);
 
-      console.log("SkillDetailsSkillDetailsSkillDetails",SkillDetails)
-  
-      const finalValues = SkillDetails.map((i)=>{
-  
-        let botId = i.dataValues.BotId
-       
-        const isInTransactions = transactionsArray ? transactionsArray.includes(botId) : false;
-        const isInReporting = reportingArray ? reportingArray.includes(botId) : false;
-        const isInCognitive = cognitiveArray ? cognitiveArray.includes(botId) : false;
-        const isInDecisionAutomations = decisionautomationsArray ? decisionautomationsArray.includes(botId) : false;
-  
-        return {
-          skillName: i.dataValues.SkillName,
-          skillType: isInTransactions ? 'Transactions' : isInReporting ? 'Reporting' : isInCognitive ? 'Cognitive' : isInDecisionAutomations ? 'Decision Automations' : 'Unknown',
-          runCost: i.dataValues.RunCost
-        };
-      })
+ }
 
-      // const doubleRowHeightThreshold = 175;
-      
-      // for (let i = 1; i <= finalValues.length; i++) {
-
-      //   const skillNameWidth = doc.widthOfString(finalValues[i - 1].skillName);
-      //   const currentRowHeight = skillNameWidth > doubleRowHeightThreshold ? rowHeight * 2: rowHeight;
-
-      //   doc.moveTo(secondCol1 - 50, secondTabelRow  + i * (currentRowHeight == rowHeight ? rowHeight : currentRowHeight)).lineTo(secondCol3 + 100, secondTabelRow + i * (currentRowHeight == rowHeight ? rowHeight : currentRowHeight)).stroke();
-
-      //   rowValue += rowHeight
-      //   doc.text(finalValues[i-1].skillName,secondCol1 - 45, secondTabelRow + i * rowHeight -15, {width: 175});
-      //   doc.text(finalValues[i-1].skillType, secondCol2 - 30, secondTabelRow + i * rowHeight - 15);
-      //   doc.text(finalValues[i-1].runCost, secondCol3 - 30, secondTabelRow + i * rowHeight -15);
-      // }
-  
-      // // Draw vertical lines for table columns
-      // doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
-      // doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
-      // doc.moveTo(secondCol3 - 40 , secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
-      // doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
-  
+ // Draw vertical lines for table columns
+ doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
+ doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
+ doc.moveTo(secondCol3 - 40 , secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
+      doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
 
 
 
-const doubleRowHeightThreshold = 175;
-
-let currentRowHeight = 0;
-
-for (let i = 1; i <= finalValues.length; i++) {
-    const skillNameWidth = doc.widthOfString(finalValues[i - 1].skillName);
-
-    console.log(`skillNameWidth of ${finalValues[i - 1].skillName}`, skillNameWidth);
-
-    // const currentRowHeight = skillNameWidth > doubleRowHeightThreshold ? rowHeight + 6: rowHeight;
-
-
-    let overlapped = 0 
-
-    if(skillNameWidth > doubleRowHeightThreshold){
-      currentRowHeight = rowHeight + 4
-      overlapped = rowHeight + 4
-    }
-
-    // const currentRowHeight = rowHeight;
-
-    doc
-        .moveTo(secondCol1 - 50, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight))
-        .lineTo(secondCol3 + 100, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight))
-        .stroke();
-
-    rowValue += (currentRowHeight == 0 ? rowHeight : currentRowHeight + 4);
-
-    doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : overlapped == 0 ? currentRowHeight : overlapped - 4) - 15, {
-        width: 175,
-    }); 
-    doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight) - 15);
-    doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * (currentRowHeight == 0 ? rowHeight : currentRowHeight) - 15);
-
-
-  //   doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * () - 15, {
-  //     width: 175,
-  // });
-  // doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * (currentRowHeight === rowHeight ? rowHeight : currentRowHeight > rowHeight ? currentRowHeight - 4 : currentRowHeight) - 15);
-  // doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * (currentRowHeight === rowHeight ? rowHeight : currentRowHeight > rowHeight ? currentRowHeight - 4 : currentRowHeight) - 15);
-  
-}
-
-// Draw vertical lines for table columns using the updated rowValue
-doc.moveTo(secondCol1 - 50, secondTableHeight - 10).lineTo(secondCol1 - 50, secondTableHeight + 15 + rowValue).stroke();
-doc.moveTo(secondCol2 - 40, secondTableHeight - 10).lineTo(secondCol2 - 40, secondTableHeight + 15 + rowValue).stroke();
-doc.moveTo(secondCol3 - 40, secondTableHeight - 10).lineTo(secondCol3 - 40, secondTableHeight + 15 + rowValue).stroke();
-doc.moveTo(secondCol3 + 100, secondTableHeight - 10).lineTo(secondCol3 + 100, secondTableHeight + 15 + rowValue).stroke();
-
-
-
-  
       // Finalize the PDF
       doc.end();
-  
+
       // let fileName = `assets/pdf/RunCost_${pdfDoc.billingMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf`;
-  
+
       // const azureResponse = await azureConnection.uploadLocalFile('pdfFileStore', fileName);
-  
+
       // console.log('Export All Azure response ---', azureResponse);
-  
+
       // console.log("Pdf generated successfully!")
 
       console.log("pdfDocpdfDocpdfDocpdfDoc",pdfDoc)
 
       if(!pdfDoc.type){
         setTimeout(()=>{
-  
           const pdfFileName = `RunCost_${currentMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf`;
           const filePath = path.resolve(__dirname, `../../../assets/pdf/RunCost_${currentMonth}_${twoDigitYear}_${empTwins.dataValues.employeeTwinName}.pdf`);
-      
+
           // Check if the file exists
           if (fs.existsSync(filePath)) {
             // Set the Content-Disposition header for download
             res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(pdfFileName)}`);
             res.setHeader('Content-Type', 'application/pdf');
-      
+
             // Send the file as a response
             res.sendFile(filePath);
-            
+
             console.log('File has been downloaded');
           } else {
             res.status(404).json({
               message: 'File not found',
               code: 404,
             });
-          } 
-         },1000) 
+          }
+         },1000)
+        }
+      } catch (e) {
+        console.log('error = ', e);
+        return res.status(500).json({ error: e });
       }
-  } catch (e) {
-    console.log('error = ', e);
-    return res.status(500).json({ error: e });
-  }
-});
+    });
+    
 
-// latest 15-11-2023
 
-const getAllVirtualDeleteApi = catchAsync(async (req, res) => {
+
+
+
+    const getAllVirtualDeleteApi = catchAsync(async (req, res) => {
   const { ETID } = req.body;
   try {
     await deleteCostUseret.sync();
@@ -7007,23 +7312,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
     let BotIDorSkillID = '';
     let result = null;
 
-    // const getExistedTotalPrice = await miniCart.findAll({
-    //   where: {
-    //     userName : req.user.name
-    //   },
-    //   attributes: [
-    //     [sequelize.fn('SUM', sequelize.col('price')), 'price'],
-    //   ]
-    // })
-    
-    // let getExistedCount = await miniCart.count({
-    //   where: {
-    //     userName : req.user.name
-    //   }
-    // })
-
-
-    // let totalPrice = getExistedTotalPrice[0].dataValues.price;
 
     if (!isNaN(Number(skillID))) {
       BotIDorSkillID = Number(skillID);
@@ -7042,8 +7330,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
             skillID: BotIDorSkillID,
           },
         });
-        // totalPrice = Number(totalPrice) - Number(existingCartItem.dataValues.price);
-        // getExistedCount = getExistedCount - 1
 
         return res.status(200).json({
           success: true,
@@ -7065,8 +7351,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
             skillDescription: botData.dataValues.processDescription,
             price: 6,
           });
-          // totalPrice = Number(totalPrice) + Number(botData.dataValues.price)
-          // getExistedCount = getExistedCount + 1;
 
         } else {
           return res.status(404).json({
@@ -7094,9 +7378,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
           },
         });
 
-        // totalPrice = Number(totalPrice) - Number(existingCartItem.dataValues.price);
-        // getExistedCount = getExistedCount - 1;
-
         return res.status(200).json({
           success: true,
           message: 'Skill removed from the cart',
@@ -7117,8 +7398,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
             skillDescription: softSkillData.dataValues.skillDescription,
             price: softSkillData.dataValues.price,
           });
-          // totalPrice = Number(totalPrice) + Number(softSkillData.dataValues.price);
-          // getExistedCount = getExistedCount + 1
+
 
         } else {
           return res.status(404).json({
@@ -7133,8 +7413,6 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
       success: true,
       message: 'Skill added to the cart',
       result: result,
-      // totalPrice,
-      // TotalSelectedItems : getExistedCount,
       code: 200
     });
 
@@ -7221,6 +7499,7 @@ const createCartFormDataEntry = async (req, res, next) => {
 
     const {
       employeeTwinID,
+      status,
       ET_name,
       functionField,
       region,
@@ -7236,9 +7515,12 @@ const createCartFormDataEntry = async (req, res, next) => {
       commentType,
     } = req.body;
 
+    let response;
+
     const existingUser = await cartFormData.findOne({
       where: {
         employeeTwinID,
+        orderStatus: 0,
       },
     });
 
@@ -7257,17 +7539,26 @@ const createCartFormDataEntry = async (req, res, next) => {
         To_cost_centre,
         commentText,
         commentType,
+        orderStatus: status == 1 ? status : 0,
       });
 
-      return res.status(200).json({
-        success: true,
-        message: 'User data updated successfully',
-        data: existingUser,
-        code: 200,
-      });
+      response = existingUser;
     } else {
+      const latestEntry = await cartFormData.findOne({
+        order: [['createdAt', 'DESC']],
+      });
 
-      const newEntry = await cartFormData.create({
+      let startOfOrderId = latestEntry ? parseInt(latestEntry.orderID.substring(1)) + 1 : 1;
+      let orderID = `#${startOfOrderId.toString().padStart(4, '0')}`;
+
+      const checkUserPlacedOrder = await cartFormData.findAll({
+        where: {
+          employeeTwinID,
+          orderStatus: 1,
+        },
+      });
+
+      const newEntryData = {
         employeeTwinID,
         ET_name,
         function: functionField,
@@ -7282,20 +7573,85 @@ const createCartFormDataEntry = async (req, res, next) => {
         To_cost_centre,
         commentText,
         commentType,
-      });
+        orderID,
+        orderStatus: status == 1 ? status : 0,
+      };
 
-      return res.status(201).json({
-        success: true,
-        message: 'Cart form data entry created successfully',
-        data: newEntry,
-        code: 201,
-      });
+      const newEntry = checkUserPlacedOrder.length > 0
+        ? await cartFormData.create(newEntryData)
+        : await cartFormData.create(newEntryData);
+
+      response = newEntry;
     }
+
+    const mailData = await cartFormData.findOne({
+      where: {
+        employeeTwinID,
+        orderStatus: 1,
+        orderID : response.orderID
+      },
+      raw: true,
+    });
+
+    if (mailData) {
+      // send email to the user with the details of the form data
+      try {
+        let mailerObject = {
+          mailData: mailData,
+          user: req.user,
+          type: 'Product order mail',
+        };
+
+        await productOrderMail(mailerObject);
+        console.log('mailerObject', mailerObject);
+      } catch (e) {
+        console.log('Error sending mail', e);
+      }
+    } else {
+      console.log('Incomplete order');
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Cart form data entry has been successfully completed${
+        response.orderStatus == 1 ? ' and mail has been sent' : ' but user has not placed order'
+      }`,
+      data: response,
+      code: 201,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Server error', code: 500 });
   }
 };
+
+
+
+//order mail data API
+const orderMailData = catchAsync(async (req, res, next) => {
+  try {
+    const {orderID} = req.body;
+console.log("orderID",orderID);
+    const addData = await ET_order.ET_order.findOne({
+      where: {
+        orderID : orderID
+      },
+      raw: true
+    });
+console.log("addData",addData);
+    let mailerObject = {
+      randomData: addData,
+      user: req.user,
+      type: 'order mail',
+    };
+    await orderMail(mailerObject);
+console.log("mailerObject",mailerObject);
+    res.send(new ResponseObject(200, 'order mail api', true, addData));
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
 
 export default {
     createTwin,
@@ -7361,5 +7717,6 @@ deleteSkillMailAPI,
   toggleSkillsToMinicart,
   getselectedSkills,
   deleteSelectedSkill,
-  createCartFormDataEntry
+  createCartFormDataEntry,
+
 }

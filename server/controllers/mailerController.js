@@ -313,9 +313,10 @@ const getThisBotMailer = async (mailData) => {
 };
 
 const sendMailSg = async (msg) => {
-  console.log('inside send mail sq', msg);
+  console.log('inside send mail sq', msg );
   try {
     sgMail.setApiKey(config.sendGridApiKey);
+
     console.log('message ---', msg);
     await sgMail
       .send(msg)
@@ -324,7 +325,7 @@ const sendMailSg = async (msg) => {
         return true;
       })
       .catch((error) => {
-        console.error(error);
+        console.error("error to sent mail",error);
         return false;
       });
   } catch (e) {
@@ -2035,65 +2036,6 @@ const randomMail = async (mailData) => {
   // send mail
 };
 
-//order Mail API
-const orderMailTemplate = async (templateObject) => {
-  let templ = `<html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Document</title>
-  </head>
-  <body>
-      <section id="containt" style="background-color: #deeaf6;">     
-          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
-              <p>Dear <span id="user">${templateObject.name}</span>, <p></p>
-              <p style="font-size: 0.95rem;"> Thank you for your purchase with us under <span id="OrderID">${templateObject.randomData.orderID}</span> 
-              <br>Your Employee Twin “Mimi” is now ready to use, please follow the attached instruction to start using it today!
-              <br>For more information, please reach out to Hyper automation Employee Twin team at <a href="ml_sa_ind_et_support@unilever.com">@ML_SA_IND_ET_Support</a>
-              </p>
-<p>
-<a href="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/botDocuments/User%20Manual.docx">Click here to download the attached document</a>
-</p>
-              <p>
-                  Regards,<br/>
-                  Automation Factory
-              </p>
-          </div>      
-      </section>
-  </body>
-  </html>`;
-  return templ;
-};
-
-const orderMail = async (mailData) => {
-  //get user email
-  let email = mailData.user.email;
-  let name = mailData.user.name;
-
-  let toList = ["anshu.rani@unilever.com","binay.kumar@unilever.com"];
-  toList.push(email);
-  let ccList = [];
-  ccList.push(config.sendGridFrom);
-  let templateObject = {
-    name: name,
-    randomData: mailData.randomData,
-    
-  };
-
-  let temp = await orderMailTemplate(templateObject);
-  console.log('to list ', toList);
-  console.log('cc list', ccList);
-
-  // create template
-  let msg = await createMessage(toList, config.sendGridFrom, ccList, `Your Digital Twin is ready! - ${templateObject.randomData.orderID} `, temp);
-  mailResponse = await sendMailSg(msg);
-  // create to anc cc
-  return true;
-  // create message
-
-  // send mail
-};
 
 ///////////skill mail API/////////
 {/*const DeleteSkillMailTemplate = async (templateObject) => {
@@ -3005,6 +2947,130 @@ const shareMail = async (mailData) => {
   return true;
 };
 
+const orderMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <section id="containt" style="background-color: #deeaf6;">     
+          <div class="text" style="padding: 0.1rem;padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+              <p>Dear <span id="user">${templateObject.name}</span>, <p></p>
+              <p style="font-size: 0.95rem;"> Thank you for your purchase with us under <span id="OrderID">${templateObject.randomData.orderID}</span> 
+              <br>Your Employee Twin “Mimi” is now ready to use, please follow the attached instruction to start using it today!
+              <br>For more information, please reach out to Hyper automation Employee Twin team at <a href="ml_sa_ind_et_support@unilever.com">@ML_SA_IND_ET_Support</a>
+              </p>
+<p>
+<a href="https://bnlwestgunileveraf01092.blob.core.windows.net/botstorevideo/botDocuments/User%20Manual.docx">Click here to download the attached document</a>
+</p>
+              <p>
+                  Regards,<br/>
+                  Automation Factory
+              </p>
+          </div>      
+      </section>
+  </body>
+  </html>`;
+  return templ;
+};
+
+const orderMail = async (mailData) => {
+  //get user email
+  let email = mailData.user.email;
+  let name = mailData.user.name;
+
+  let toList = ["anshu.rani@unilever.com","binay.kumar@unilever.com"];
+  toList.push(email);
+  let ccList = [];
+  ccList.push(config.sendGridFrom);
+  let templateObject = {
+    name: name,
+    randomData: mailData.randomData,
+    
+  };
+
+  let temp = await orderMailTemplate(templateObject);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(toList, config.sendGridFrom, ccList, `Your Digital Twin is ready! - ${templateObject.randomData.orderID} `, temp);
+  mailResponse = await sendMailSg(msg);
+  // create to anc cc
+  return true;
+  // create message
+
+  // send mail
+};
+
+
+const productOrderMailTemplate = async (templateObject) => {
+  let templ = `<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Order Confirmation</title>
+  </head>
+  <body style="background-color: #deeaf6;">
+      <section id="content" style="padding: 0.1rem; padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+          <p>Dear <span id="user">${templateObject.name}</span>,</p>
+          <p style="font-size: 0.95rem;">Thank you for your purchase with us under <span id="OrderID">${templateObject.randomData.orderID}</span></p>
+          <br/>
+          <p>Below are the details of your order:-</p>
+          <br/>
+          <table>
+              <tr>
+                  <th>Order ID</th>
+                  <td>${templateObject.randomData.orderID}</td>
+              </tr>
+              <tr>
+                  <th>Employee Twin Name</th>
+                  <td>${templateObject.randomData.ET_name}</td>
+              </tr>
+          </table>
+          <p>Regards,<br/>Automation Factory</p>
+      </section>
+  </body>
+  </html>
+  `;
+  return templ;
+};
+
+const productOrderMail = async (mailData) => {
+  //get user email
+  let email = mailData.user.email;
+  let name = mailData.user.name;
+
+  let toList = ["anshu.rani@unilever.com","binay.kumar@unilever.com","ritik.bhadauria@unilever.com"];
+  toList.push(email);
+
+  let ccList = [];
+  ccList.push(config.sendGridFrom);
+
+  let templateObject = {
+    name: name,
+    email: email,
+    randomData: mailData.mailData,
+  };
+
+  let temp = await productOrderMailTemplate(templateObject);
+  console.log('to list ', toList);
+  console.log('cc list', ccList);
+
+  // create template
+  let msg = await createMessage(toList, config.sendGridFrom, ccList, `Thank You for Your Order! Order Confirmation Inside. Order id - ${templateObject.randomData.orderID} `, temp);
+  console.log("msgmsgmsgmsg",msg)
+  mailResponse = await sendMailSg(msg);
+  // create to anc cc
+  return true;
+  // create message
+  // send mail
+};
+
 
 export default {
   createMailerThroughFile,
@@ -3028,5 +3094,6 @@ buyNowMail,
   pinMail,
   shareMail,
   costControlMail,
+  productOrderMail
 };
 

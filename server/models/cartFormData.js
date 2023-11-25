@@ -58,6 +58,15 @@ const cartFormData = sequelize.define(
         commentType: {
             type: DataTypes.STRING,
             allowNull: true,
+        },
+        orderID :{
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        orderStatus :{
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0,
         }
     },
     {

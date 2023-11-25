@@ -152,6 +152,9 @@ router.get('/deleteSelectedSkill',deleteSelectedSkill);
 
 router.post('/createCartFormDataEntry',createCartFormDataEntry);
 
+// router.get('/mailForOrder',mailForOrder);
+
+
 
 export default router;
 
