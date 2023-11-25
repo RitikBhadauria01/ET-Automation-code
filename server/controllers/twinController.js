@@ -7795,8 +7795,6 @@ const createCartFormDataEntry = async (req, res, next) => {
 
     let response;
 
-    await miniCart.update({ status: 1 }, { where: { userName: req.user.email, status: 0 } });
-
     const existingUser = await cartFormData.findOne({
       where: {
         userName : req.user.email,
@@ -7877,7 +7875,9 @@ const createCartFormDataEntry = async (req, res, next) => {
           user: req.user,
           type: 'Product order mail',
         };
-        
+
+        await miniCart.update({ status: 1 }, { where: { userName: req.user.email, status: 0 } });
+     
         await productOrderMail(mailerObject);
         console.log('mailerObject', mailerObject);
 
