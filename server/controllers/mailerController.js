@@ -711,8 +711,8 @@ const CheckoutMailTemplate = async (templateObject) => {
               <p style="font-size: 0.95rem;"><b> You have added total: </b> <span id="Total Skills">${templateObject.checkoutData.totalSkills} skills</span> 
 <br><span id ="functionSkills"><b>Functional Skills: </b> ${templateObject.checkoutData.functionSkills}</span>
 <br><span id ="softSkills"><b>Soft Skills: </b> ${templateObject.checkoutData.softSkills}</span>
-<br><span id ="softSkills"><b>Total Price: </b> ${templateObject.checkoutData.totalPrice}</span>
-              <br>For more information, please reach out to Hyper automation at @ML_SA_IND_ET_Support
+<br><span id ="softSkills"><b>Total Price: </b> €${templateObject.checkoutData.totalPrice}</span>
+              <br>For more information, please reach out to Hyper automation at @hap@unilever.com
               </p>        
               <p>
                   Regards,<br/>
