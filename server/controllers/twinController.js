@@ -6804,7 +6804,7 @@ const generatePDFAPI = catchAsync(async (req, res) => {
       })
 
       // Limit to two decimal places
-      totalRunCost = totalRunCost.toFixed(2);
+      totalRunCost = `€${totalRunCost.toFixed(2)}`;
 
       let currentYear = new Date();
       let shortYear = currentYear.getFullYear();
