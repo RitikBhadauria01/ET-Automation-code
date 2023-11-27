@@ -6016,7 +6016,7 @@ console.log("resultresultresult 2584 cogitiveRunCost 11233344",resultSum);
       emailData:dataValuesData,
       user: req.user,
       type: 'CostCenter',
-      totalRunCost:resultSum,
+      totalRunCost: resultSum,
       monthName:monthName,
       selectedYear:selectedYear,
     };
@@ -6216,7 +6216,7 @@ const generatePDFAPI = catchAsync(async (req, res) => {
       doc.text(pdfDoc.countryCode, updatecolumn2, yPos + 154);
   
       doc.text("Total Run-Cost", updatecolumn1, yPos + 176);
-      doc.text(totalRunCost, updatecolumn2, yPos + 176);
+      doc.text(`${totalRunCost}`, updatecolumn2, yPos + 176);
   
   
       let secondTableHeight = 420;
@@ -6256,7 +6256,7 @@ const generatePDFAPI = catchAsync(async (req, res) => {
         return {
           skillName: i.dataValues.SkillName,
           skillType: isInTransactions ? 'Transactions' : isInReporting ? 'Reporting' : isInCognitive ? 'Cognitive' : isInDecisionAutomations ? 'Decision Automations' : 'Unknown',
-          runCost: i.dataValues.RunCost
+          runCost: `€${i.dataValues.RunCost}`
         };
       })
       
