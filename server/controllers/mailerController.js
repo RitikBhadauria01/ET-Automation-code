@@ -19,6 +19,7 @@ import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 import moment from 'moment';
+import { log } from 'handlebars';
 
 // templates
 const pdfMailerTemplateV1 = path.join(__dirname, '../templates/pdfMailerTemplate.ejs');
@@ -219,7 +220,7 @@ const getMailTo = async (leadPlatfrom, cluster) => {
   return elArray;
 };
 
-const sendMail = catchAsync(async (req, res, next) => {});
+const sendMail = catchAsync(async (req, res, next) => { });
 
 // public api mailer
 const getEl = catchAsync(async (req, res) => {
@@ -260,15 +261,15 @@ const getThisBotMailer = async (mailData) => {
   requsetADemo.technology = mailData.mailData.technology;
   requsetADemo.remark = mailData.mailData.remark;
   // get user Email for cc
-//vvvvv  let userEmail = mailData.user.email;
-//vvvvvv  let cc = [];
-//vvvvvv  let toMail = [];
-//vvvvvv  toMail.push(userEmail);
+  //vvvvv  let userEmail = mailData.user.email;
+  //vvvvvv  let cc = [];
+  //vvvvvv  let toMail = [];
+  //vvvvvv  toMail.push(userEmail);
   let GetMailResposne = await getMailTo(mailData.mailData.leadPlatform, mailData.mailData.cluster);
- // console.log('el------------', GetMailResposne);
+  // console.log('el------------', GetMailResposne);
 
   for (let i = 0; i < GetMailResposne.length; i++) {
-//vvvvvv    cc.push(GetMailResposne[i]);
+    //vvvvvv    cc.push(GetMailResposne[i]);
   }
   //toMail.concat(GetMailResposne);
 
@@ -291,8 +292,8 @@ const getThisBotMailer = async (mailData) => {
     console.log('mail template  ---', mailTemplate);
 
     // cc.push(config.ccSendGrid);
-//    console.log('ccList  ----', cc);
- //   console.log('to list --', toMail);
+    //    console.log('ccList  ----', cc);
+    //   console.log('to list --', toMail);
 
     // un comment this code in production;
 
@@ -307,13 +308,13 @@ const getThisBotMailer = async (mailData) => {
     console.log('msg --', msg);
     // return;
     mailResponse = await sendMailSg(msg);
-   // console.log('mail response ---', mailResponse);
+    // console.log('mail response ---', mailResponse);
   }
   return true;
 };
 
 const sendMailSg = async (msg) => {
-  console.log('inside send mail sq', msg );
+  console.log('inside send mail sq', msg);
   try {
     sgMail.setApiKey(config.sendGridApiKey);
 
@@ -325,7 +326,7 @@ const sendMailSg = async (msg) => {
         return true;
       })
       .catch((error) => {
-        console.error("error to sent mail",error);
+        console.error("error to sent mail", error);
         return false;
       });
   } catch (e) {
@@ -369,11 +370,11 @@ const createMessage = async (to, from, cc, subject, mailTemplate, attachment, bo
 
 const contactMailer = async (mailData) => {
   let userEmail = mailData.user.email;
-//vvvvvv  console.log('mail data -', mailData.mailData);
-//vvvvvv  console.log('common cc --', config.ccSendGrid);
-//vvvvvv  console.log('user email --', userEmail);
+  //vvvvvv  console.log('mail data -', mailData.mailData);
+  //vvvvvv  console.log('common cc --', config.ccSendGrid);
+  //vvvvvv  console.log('user email --', userEmail);
 
-//vvvvvv  let cc = [];
+  //vvvvvv  let cc = [];
   if (mailData.mailData.UserEmail !== userEmail) {
     // cc.push(mailData.mailData.UserEmail);
     // cc.push(mailData.mailData.UserEmail, config.ccSendGrid);
@@ -381,18 +382,18 @@ const contactMailer = async (mailData) => {
     // cc.push(config.ccSendGrid);
   }
 
-//vvvvvv  console.log('cc----', cc);
+  //vvvvvv  console.log('cc----', cc);
 
-//vvvvvv  let toMail = [];
-//vvvvvv  console.log('To mail --', mailData.mailData.UserEmail);
-//vvvvvv  toMail.push(userEmail);
+  //vvvvvv  let toMail = [];
+  //vvvvvv  console.log('To mail --', mailData.mailData.UserEmail);
+  //vvvvvv  toMail.push(userEmail);
   // create template
   let template = createTemplate(mailData);
 
   // create msg
   let msg = await createMessage(
     toMail,
-//vvvvvv    config.sendGridFrom,
+    //vvvvvv    config.sendGridFrom,
     cc,
     `${mailData.type} Automation Factory`,
     template
@@ -649,9 +650,9 @@ const getIdeaTemPlate = async (templateObject) => {
     word.charAt(0).toUpperCase() + word.slice(1)
   );
   const capitalizedString = capitalizedWords.join(' ');
-  console.log('attachedFileName',attachedFileName);
-  console.log('templateObject>>>>',templateObject);
-  console.log('templateObject>>>>',templateObject.name);
+  console.log('attachedFileName', attachedFileName);
+  console.log('templateObject>>>>', templateObject);
+  console.log('templateObject>>>>', templateObject.name);
   let templ = `<html lang="en">
   <head>
       <meta charset="UTF-8">
@@ -666,22 +667,21 @@ const getIdeaTemPlate = async (templateObject) => {
                   Thank you for reaching out!<br/>
               </p>
               <p style="max-width: 30rem; font-size: 0.95rem;">We have received your idea for automation ${templateObject.ideaData.processToBeAutomated != '' ?
-                  `of process <span id="ProcessToBeAutomated">${templateObject.ideaData.processToBeAutomated}</span>,`:''} ${templateObject.ideaData.applicationInvolved != '' ? `application involved are <span id="ApplicationInvolved">${templateObject.ideaData.applicationInvolved}</span>`:''}
+      `of process <span id="ProcessToBeAutomated">${templateObject.ideaData.processToBeAutomated}</span>,` : ''} ${templateObject.ideaData.applicationInvolved != '' ? `application involved are <span id="ApplicationInvolved">${templateObject.ideaData.applicationInvolved}</span>` : ''}
                    with description <span id="DescribeTheProcess">${templateObject.ideaData.describeTheProcess}</span> and expected benefits 
                    <span id="ExpectedBenefits">${templateObject.ideaData.expectedBenfit}</span>.</p>  
                    <p style="max-width: 30rem; font-size: 0.95rem;">
                    <span style="font-weight: bold;">Additional Details</span>: <br/>
                    <span style="font-weight: bold;">Request Type</span>: <span id="ExpectedRequestType">${templateObject.ideaData.expectedRequestType}</span> <br/>
-                   ${templateObject.ideaData.expectedProcessBotID != '' ? `<span style="font-weight: bold;">Process BOT ID</span>: <span id="ExpectedProcessBotID">${templateObject.ideaData.expectedProcessBotID}</span><br/>`:''}
+                   ${templateObject.ideaData.expectedProcessBotID != '' ? `<span style="font-weight: bold;">Process BOT ID</span>: <span id="ExpectedProcessBotID">${templateObject.ideaData.expectedProcessBotID}</span><br/>` : ''}
 		   <span style="font-weight: bold;">Cluster</span>: <span id="expectedCluster">${templateObject.ideaData.expectedCluster}</span> <br/>
-                   <span style="font-weight: bold;">MCO</span>: <span id="expectedMcoType">${
-                  templateObject.ideaData.expectedMcoType}</span> <br/>
+                   <span style="font-weight: bold;">MCO</span>: <span id="expectedMcoType">${templateObject.ideaData.expectedMcoType}</span> <br/>
                    <span style="font-weight: bold;">Lead PlatForm</span>: <span id="expectedLeadPlatform">${templateObject.ideaData.expectedLeadPlatform}</span> <br/>
                    <span style="font-weight: bold;">Area</span>: <span id="expectedAreaType">${templateObject.ideaData.expectedAreaType}</span> <br/>
                    <span style="font-weight: bold;">Requestor Email</span>: <span id="ExpectedProcessBotID">${templateObject.ideaData.expectedRequestorEmail}</span>
                    </p>
-                   ${templateObject.ideaData.expectedPDDdocument !='' ? `<p style="max-width: 30rem; font-size: 0.95rem;"> <span style="font-weight: bold;">The Updated PDD Attachment</span> - ${attachedFileName}.  
-                  </p>`:''}                           
+                   ${templateObject.ideaData.expectedPDDdocument != '' ? `<p style="max-width: 30rem; font-size: 0.95rem;"> <span style="font-weight: bold;">The Updated PDD Attachment</span> - ${attachedFileName}.  
+                  </p>`: ''}                           
               <p>We will get in touch with you shortly.  </p>
               <p>
                   Regards,<br/>
@@ -735,13 +735,13 @@ const CheckoutMail = async (mailData) => {
   let toList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
   toList.push(email)
 
-;
+    ;
   let ccList = ["binay.kumar@unilever.com"];
   ccList.push(config.sendGridFrom);
   let templateObject = {
     name: name,
     checkoutData: mailData.checkoutData,
-    
+
   };
 
   let temp = await CheckoutMailTemplate(templateObject);
@@ -801,14 +801,12 @@ const businessOwnerMailer = async (templateData) => {
                 <p>Hi <span id="user"></span>${templateData.toName ? templateData.toName : 'User'},
                 <br/>                   
                 </p>
-                <p>The process created with Bot ID ${templateData.botID} and process name ${
-    templateData.processName
-  } requires your review and approval.
+                <p>The process created with Bot ID ${templateData.botID} and process name ${templateData.processName
+    } requires your review and approval.
                 <p/>
                 <br/>
-                <p>Link to the approval portal: <a href=${config.apporvalPortalLink}>${
-    config.apporvalPortalLink
-  }</a>
+                <p>Link to the approval portal: <a href=${config.apporvalPortalLink}>${config.apporvalPortalLink
+    }</a>
                 </p>
                 </p>
                 <p>
@@ -884,23 +882,23 @@ const submitAnIdeaMailer = async (mailData) => {
   email.toString();
   let email1 = mailData.ideaData.expectedRequestorEmail;
   email1.toString();
-  console.log('email',email);
-  console.log('email1',email1);
-  console.log('mailData.userData',mailData.userData);
+  console.log('email', email);
+  console.log('email1', email1);
+  console.log('mailData.userData', mailData.userData);
   var toList = [email];
-  if((email1 != email)){
+  if ((email1 != email)) {
     toList.push(email1);
   }
- 
+
   // Code for checking El mail available or not
   const unileverEmails = getElmailArray.filter(email => email.endsWith('@unilever.com'));
-  console.log('unileverEmails',unileverEmails);
-    // Pushing elements from getElmailArray into toList
-    if(unileverEmails.length != 0){
-      for (const email of unileverEmails) {
-        toList.push(email);
-      }
+  console.log('unileverEmails', unileverEmails);
+  // Pushing elements from getElmailArray into toList
+  if (unileverEmails.length != 0) {
+    for (const email of unileverEmails) {
+      toList.push(email);
     }
+  }
 
   let ccList = [email];
   // ccList.push(config.ccSendGrid);
@@ -917,49 +915,49 @@ const submitAnIdeaMailer = async (mailData) => {
   const uniqueEmailSet = new Set(toList);
   // Convert the Set back to an array
   var toListEmailArray = Array.from(uniqueEmailSet);
-  console.log('toListEmailArray',toListEmailArray);
-  
+  console.log('toListEmailArray', toListEmailArray);
+
   // Create the attachment object
   const path = require('path');
   const url = `${mailData.ideaData.expectedPDDdocument}`;
   var expectedPDDDocFile = `${mailData.ideaData.expectedDocUpdated}`;
-  console.log('expectedPDDDocFile',expectedPDDDocFile);
+  console.log('expectedPDDDocFile', expectedPDDDocFile);
 
-  if(expectedPDDDocFile == 'Yes'){
-  axios
-  .get(url, { responseType: 'arraybuffer' })
-  .then((response) => {
-    let docFileName = path.basename(url);
-    console.log('docFileName',docFileName);
-    console.log('url',url);
-    const attachment = {
-      content: Buffer.from(response.data).toString('base64'),
-      filename: docFileName,
-      type: '*/*',
-      disposition: 'attachment',
-    };
-  const email1 = {
-    to:toListEmailArray,
-    from: "botstore@unilever.com",
-    subject: "Automation Idea",
-    text: "Submit an Idea",
-    html: ideaTemplate,
-    attachments: [attachment]
-  };
-   sendMailSg(email1)
-   })
+  if (expectedPDDDocFile == 'Yes') {
+    axios
+      .get(url, { responseType: 'arraybuffer' })
+      .then((response) => {
+        let docFileName = path.basename(url);
+        console.log('docFileName', docFileName);
+        console.log('url', url);
+        const attachment = {
+          content: Buffer.from(response.data).toString('base64'),
+          filename: docFileName,
+          type: '*/*',
+          disposition: 'attachment',
+        };
+        const email1 = {
+          to: toListEmailArray,
+          from: "botstore@unilever.com",
+          subject: "Automation Idea",
+          text: "Submit an Idea",
+          html: ideaTemplate,
+          attachments: [attachment]
+        };
+        sendMailSg(email1)
+      })
   }
 
- if(expectedPDDDocFile == 'No'){
-   const email2 = {
-    to:toListEmailArray,
-    from: "botstore@unilever.com",
-    subject: "Automation Idea",
-    text: "Submit an Idea",
-    html: ideaTemplate
-   };
-   sendMailSg(email2)
- }
+  if (expectedPDDDocFile == 'No') {
+    const email2 = {
+      to: toListEmailArray,
+      from: "botstore@unilever.com",
+      subject: "Automation Idea",
+      text: "Submit an Idea",
+      html: ideaTemplate
+    };
+    sendMailSg(email2)
+  }
 
   // create template
   /*let msg = await createMessage(
@@ -992,9 +990,9 @@ const costControlMail = async (mailData) => {
   let templateObject = {
     name: name,
     emailData: mailData.emailData,
-    monthName:mailData.monthName,
-    totalRunCost:mailData.totalRunCost,
-    selectedYear:mailData.selectedYear,
+    monthName: mailData.monthName,
+    totalRunCost: mailData.totalRunCost,
+    selectedYear: mailData.selectedYear,
   };
   console.log('template object lone 2002', templateObject);
 
@@ -1020,7 +1018,7 @@ const costControlMail = async (mailData) => {
   // send mail
 };
 
-const costControlTemplet = async (templateObject)=>{
+const costControlTemplet = async (templateObject) => {
   const userEmailName = templateObject.name.split(' ');
   const capitalizedWords = userEmailName.map(
     (word) => word.charAt(0).toUpperCase() + word.slice(1)
@@ -1118,8 +1116,8 @@ var getUserNameFromEmail = async (email) => {
 };
 
 const updateBotMailer = async (mailData) => {
-//vvvvvv  var ccList = [];
-//vvvvvv  let toList = [];
+  //vvvvvv  var ccList = [];
+  //vvvvvv  let toList = [];
   let templateData = {};
   var emailTemplate = '';
   var msg = '';
@@ -1206,8 +1204,8 @@ const updateBotMailer = async (mailData) => {
       console.log(templateData);
       emailTemplate = getMailerTemplate('firstLevelGpmHasApproved', templateData);
       msg = await createMessage(
-   //vvvv     toList,
-     //vvvvv   config.sendGridFrom,
+        //vvvv     toList,
+        //vvvvv   config.sendGridFrom,
         ccList,
         'Final GPM Approval - [' + botExternalId + ']',
         emailTemplate
@@ -1394,8 +1392,8 @@ const updateBotMailer = async (mailData) => {
         informationControl: _.get(mailData, ['botData', 'kfaIuc'], '')
           ? 'Yes'
           : _.get(mailData, ['botData', 'kfaIuc'], '') === false
-          ? 'No'
-          : '',
+            ? 'No'
+            : '',
         processArea: _.get(mailData, ['botData', 'firstLevelControlProcessArea'], ''),
         subProcessArea: _.get(mailData, ['botData', 'firstLevelControlSubProcessArea'], ''),
         controlDetails: controlDetails,
@@ -1403,8 +1401,8 @@ const updateBotMailer = async (mailData) => {
         status: _.get(mailData, ['botData', 'status'], '')
           ? 'Approved'
           : _.get(mailData, ['botData', 'status'], '') === false
-          ? 'Rejected'
-          : '',
+            ? 'Rejected'
+            : '',
         documentLink: _.get(mailData, ['botData', 'secondLevelGfcfApprovalDocumentLink'], ''),
       };
       var timestamp = moment().format();
@@ -1425,9 +1423,9 @@ const updateBotMailer = async (mailData) => {
         .then(async (fromResolve) => {
           console.log('Received resolve from htmlToPdf' + JSON.stringify(fromResolve));
           var msg = await createMessage(
-         //vvvvvv   toList,
-        //vvvvvv    config.sendGridFrom,
-        //vvvvvv    ccList,
+            //vvvvvv   toList,
+            //vvvvvv    config.sendGridFrom,
+            //vvvvvv    ccList,
             '[' + botID + '] - GFCF Review Complete',
             emailTemplate,
             'GFCF Approval' + data.botId + '.pdf',
@@ -1508,7 +1506,7 @@ const updateBotMailer = async (mailData) => {
       emailTemplate = getMailerTemplate('firstGfcfHasApproved', templateData);
       msg = await createMessage(
         toList,
-     //vvvvvv   config.sendGridFrom,
+        //vvvvvv   config.sendGridFrom,
         ccList,
         'Final GFCF Approval - [' + botExternalId + ']',
         emailTemplate
@@ -1597,8 +1595,8 @@ const updateBotMailer = async (mailData) => {
 };
 
 const createApproveBotMailer = async (mailData) => {
-//vvvvvv  let ccList = [];
-//vvvvvv  let toList = [];
+  //vvvvvv  let ccList = [];
+  //vvvvvv  let toList = [];
   let templateData = {};
 
   console.log('Mail data  ---', mailData);
@@ -1633,7 +1631,7 @@ const createApproveBotMailer = async (mailData) => {
     if (businessOwnerEmailID && businessOwnerEmailID.includes('@unilever.com')) {
       toList.push(businessOwnerEmailID);
     }
-   // console.log('cc list ', ccList);
+    // console.log('cc list ', ccList);
     console.log(
       kfa,
       area,
@@ -1747,8 +1745,8 @@ const createApproveBotMailer = async (mailData) => {
         ccList.push(adminList[i].dataValues.email);
       }
     }
-   // console.log('cc list', ccList);
-  //  console.log('to list ---', toList);
+    // console.log('cc list', ccList);
+    //  console.log('to list ---', toList);
   }
 
   var businessOwnerEmail = _.get(mailData, ['botData', 'businessOwnerEmailID'], '');
@@ -1776,20 +1774,20 @@ const createApproveBotMailer = async (mailData) => {
   //toList = ['sanjay.sharma@unilever.com'];
   let msg = await createMessage(
     toList,
- //vvvvvv   config.sendGridFrom,
- //vvvv   ccList,
+    //vvvvvv   config.sendGridFrom,
+    //vvvv   ccList,
     `New Bot Approval - ${templateData.botID}`,
     getTempl
   );
- //vvvv console.log('Sending create bot email' + JSON.stringify(msg));
+  //vvvv console.log('Sending create bot email' + JSON.stringify(msg));
   mailResponse = await sendMailSg(msg);
-//vvvvv  console.log('mail response ---', mailResponse);
+  //vvvvv  console.log('mail response ---', mailResponse);
   // send mail
   return true;
 };
 
 ////devops mailer template
-const createDevopsmailer=async (templateData)=>{
+const createDevopsmailer = async (templateData) => {
   let errorApiTemplate = `<html lang="en">
       <head>
           <meta charset="UTF-8">
@@ -1820,24 +1818,24 @@ const createDevopsmailer=async (templateData)=>{
           </section>
       </body>
       </html>`;
-    return errorApiTemplate;
-  };
-  
-  
-  
-  
-  
-  //devops api error handling
-  
-  const devopsMailer= async (mailData)=>{
- //vvvvvv   let ccList = [];
- //vvvvvv   let toList = ["ulaf.support@mindtree.com"];
-    let templateData={};
-  
-    console.log('devopsApiError==',mailData)
-  
-  if (mailData.type=='DEVOPSAPIERROR'){
-    templateData.type='errorApiTemplate';
+  return errorApiTemplate;
+};
+
+
+
+
+
+//devops api error handling
+
+const devopsMailer = async (mailData) => {
+  //vvvvvv   let ccList = [];
+  //vvvvvv   let toList = ["ulaf.support@mindtree.com"];
+  let templateData = {};
+
+  console.log('devopsApiError==', mailData)
+
+  if (mailData.type == 'DEVOPSAPIERROR') {
+    templateData.type = 'errorApiTemplate';
     let {
       botID,
       processName,
@@ -1852,34 +1850,34 @@ const createDevopsmailer=async (templateData)=>{
       kfa,
       botExternalId,
       createdBy,
-    }= mailData.botData;
-    templateData.botID =botID;
+    } = mailData.botData;
+    templateData.botID = botID;
     templateData.processName = processName;
-    templateData.engagementLead =engagementLead;
+    templateData.engagementLead = engagementLead;
     templateData.cluster = cluster;
     templateData.country = country;
     templateData.mco = mco;
-    templateData.leadPlatform= leadPlatform;
-    templateData.status= status;
-    templateData.technology= technology;
-    templateData.kfa= kfa;
-    templateData.requestType= requestType;
-    templateData.botExternalId= botExternalId;
+    templateData.leadPlatform = leadPlatform;
+    templateData.status = status;
+    templateData.technology = technology;
+    templateData.kfa = kfa;
+    templateData.requestType = requestType;
+    templateData.botExternalId = botExternalId;
     templateData.createdBy = createdBy;
-  
-  
-  
+
+
+
   }
-  console.log("sdjfadsjf",templateData.engagementLead,"vineethtemplate")
-  var getDevopsTemplate=await createDevopsmailer(templateData);
-  console.log(getDevopsTemplate,"getDevopsTemplate==")
-  
-///el lead push to cclist
-ccList.push(templateData.engagementLead);
+  console.log("sdjfadsjf", templateData.engagementLead, "vineethtemplate")
+  var getDevopsTemplate = await createDevopsmailer(templateData);
+  console.log(getDevopsTemplate, "getDevopsTemplate==")
+
+  ///el lead push to cclist
+  ccList.push(templateData.engagementLead);
 
   let msg = await createMessage(
     toList,
-  //vvvvvv  config.sendGridFrom,
+    //vvvvvv  config.sendGridFrom,
     ccList,
     `Api Failed to create New WorkItem in DEVOPS- ${templateData.botExternalId}`,
     getDevopsTemplate
@@ -1888,8 +1886,8 @@ ccList.push(templateData.engagementLead);
   mailResponse = await sendMailSg(msg);
   console.log('mail response ---', mailResponse);
   return true;
-  
-  }
+
+}
 
 const feedbackTemplate = async (templateObject) => {
   let templ = `<html lang="en">
@@ -1923,13 +1921,13 @@ const feedbackMail = async (mailData) => {
   console.log('feedback--->>>>>>>>>>', mailData);
   //get user email
   let { email, name } = mailData.user;
-  console.log("line 1920",email,name);
+  console.log("line 1920", email, name);
 
   let toList = [];
   toList.push(email);
   let ccList = [];
   // ccList.push(config.sendGridFrom);
-  console.log("line 1927",ccList);
+  console.log("line 1927", ccList);
   let templateObject = {
     name: name,
     feedData: mailData.feedData,
@@ -1938,13 +1936,13 @@ const feedbackMail = async (mailData) => {
 
   let feedbackTemp = await feedbackTemplate(templateObject);
   console.log(">>>>>>>>>>>>>1933<<<<<<", feedbackTemp)
-//vvvvvv  console.log('to list ', toList);
-//vvvvvv  console.log('cc list', ccList);
+  //vvvvvv  console.log('to list ', toList);
+  //vvvvvv  console.log('cc list', ccList);
 
   // create template
   let msg = await createMessage(
     toList,
-   'botstore@unilever.com',
+    'botstore@unilever.com',
     ccList,
     'Automation Feedback',
     feedbackTemp
@@ -2002,7 +2000,7 @@ const randomMail = async (mailData) => {
   console.log('randomMail--->>>>>>>>>>', mailData);
   //get user email
   let { email, name } = mailData.user;
-  console.log("line 1920",email,name);
+  console.log("line 1920", email, name);
 
   let toList = [];
   toList.push(email);
@@ -2022,7 +2020,7 @@ const randomMail = async (mailData) => {
   // create template
   let msg = await createMessage(
     toList,
-  'botstore@unilever.com',
+    'botstore@unilever.com',
     ccList,
     'Automation Random Mail & Password',
     randomMailTemp
@@ -2141,30 +2139,30 @@ const deleteSkillMail = async (mailData) => {
   let name = mailData.user.name;
 
   let toList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
-  let toList1 = ["veshaly.varshney@unilever.com", "binay.kumar@unilever.com"]; 
- toList1.push(email)
-;
+  let toList1 = ["veshaly.varshney@unilever.com", "binay.kumar@unilever.com"];
+  toList1.push(email)
+    ;
   let ccList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
   ccList.push(config.sendGridFrom);
   let templateObject = {
     name: name,
     deleteskillData: mailData.deleteskillData,
-    
+
   };
 
   let temp = await DeleteSkillMailTemplate(templateObject);
- let temp1 = await DeleteSkillMailTemplate1(templateObject);
+  let temp1 = await DeleteSkillMailTemplate1(templateObject);
   console.log('to list ', toList);
   console.log('cc list', ccList);
 
   // create template
   //let msg = await createMessage(toList, config.sendGridFrom, ccList, 'Delete Skill Mail', temp);
- let msg = await createMessage(toList1, config.sendGridFrom, ccList, `Oops! You just deleted ${templateObject.deleteskillData.skillName} from ${templateObject.deleteskillData.empid} !`, temp);
-  let msg1 = await createMessage(toList, config.sendGridFrom,ccList,  `${templateObject.name} just deleted ${templateObject.deleteskillData.skillName} from ${templateObject.deleteskillData.empid}`, temp1);
-    
-mailResponse = await sendMailSg(msg);
-mailResponse = await sendMailSg(msg1);  
-// create to anc cc
+  let msg = await createMessage(toList1, config.sendGridFrom, ccList, `Oops! You just deleted ${templateObject.deleteskillData.skillName} from ${templateObject.deleteskillData.empid} !`, temp);
+  let msg1 = await createMessage(toList, config.sendGridFrom, ccList, `${templateObject.name} just deleted ${templateObject.deleteskillData.skillName} from ${templateObject.deleteskillData.empid}`, temp1);
+
+  mailResponse = await sendMailSg(msg);
+  mailResponse = await sendMailSg(msg1);
+  // create to anc cc
   return true;
   // create message
 
@@ -2270,33 +2268,33 @@ const addSkillMail = async (mailData) => {
   //get user email
   let email = mailData.user.email;
   let name = mailData.user.name;
-  let toList = [ "Abhishek.U@unilever.com","madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
+  let toList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
   let toList1 = ["veshaly.varshney@unilever.com", "binay.kumar@unilever.com"];
- toList1.push(email)
+  toList1.push(email)
 
-;
- let ccList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
+    ;
+  let ccList = ["Abhishek.U@unilever.com", "madhurima.jaggi@unilever.com", "Gopikrishna.M@unilever.com"];
   ccList.push(config.sendGridFrom);
 
   let templateObject = {
     name: name,
     addSkillData: mailData.addSkillData,
-    
+
   };
 
   let temp = await addSkillMailTemplate(templateObject);
-   let temp1 = await addSkillMailTemplate1(templateObject);
+  let temp1 = await addSkillMailTemplate1(templateObject);
   console.log('to list ', toList);
   console.log('cc list', ccList);
 
   // create template
- // let msg = await createMessage(toList, config.sendGridFrom, ccList, 'Add Skill Mail', temp);
+  // let msg = await createMessage(toList, config.sendGridFrom, ccList, 'Add Skill Mail', temp);
   let msg = await createMessage(toList1, config.sendGridFrom, ccList, `Yay! You just added ${templateObject.addSkillData.skillName} to ${templateObject.addSkillData.empid} !`, temp);
   let msg1 = await createMessage(toList, config.sendGridFrom, ccList, `${templateObject.name} just added ${templateObject.addSkillData.skillName} to ${templateObject.addSkillData.empid}`, temp1);
-    
-mailResponse = await sendMailSg(msg);
- mailResponse = await sendMailSg(msg1);  
-// create to anc cc
+
+  mailResponse = await sendMailSg(msg);
+  mailResponse = await sendMailSg(msg1);
+  // create to anc cc
   return true;
   // create message
 
@@ -2305,7 +2303,7 @@ mailResponse = await sendMailSg(msg);
 
 //pinnterest model mail
 const buyNowMailTemplate = async (templateObject) => {
-  
+
   const productData = templateObject.responseDetails?.legend || templateObject.responseDetails?.pro
 
   var jsonString = JSON.stringify(productData);
@@ -2525,7 +2523,7 @@ const buyNowMail = async (mailData) => {
 
   const { list, ...items } = mailData.responseDetails;
 
-  
+
 
   let ccList = [];
   //mailto:cclist.push('hap@unilever.com');
@@ -2723,7 +2721,7 @@ const pinMail = async (mailData) => {
     tosentmailUsername: mailData.targetUser.name,
     userPins: mailData.userPins,
     message: mailData.message,
-    responsePackage : mailData.responsePackage
+    responsePackage: mailData.responsePackage
   };
 
   let temp = await pinMailTemplate(templateObject);
@@ -2758,11 +2756,11 @@ const ShareMailTemplate = async (templateObject) => {
     : [templateObject.shareEmail];
   const templates = [];
   for (const shareEmail of shareEmails) {
-     for(const subArray of templateObject.user){
+    for (const subArray of templateObject.user) {
 
-      for(const value of subArray){
+      for (const value of subArray) {
 
-    let templ = `<html lang="en">
+        let templ = `<html lang="en">
   <head>
       <meta charset="UTF-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -2894,10 +2892,10 @@ const ShareMailTemplate = async (templateObject) => {
 </section>
   </body>
   </html>`;
-    templates.push(templ);
+        templates.push(templ);
+      }
+    }
   }
-     }
-   }
 
   return templates;
 };
@@ -2909,40 +2907,40 @@ const shareMail = async (mailData) => {
   for (const subArray of mailData.user) {
     for (const value of subArray) {
       toList.push(value.email);
-   
 
-  let ccList = [mailData.sender.email];
 
-  ccList.push('hap@unilever.com');
+      let ccList = [mailData.sender.email];
 
-  let templateObjects = {
-    shareEmails: mailData.shareEmail, // Extract email addresses
-    user: mailData.user,
-    sender: mailData.sender,
-    shareData: mailData.shareData,
-    message: mailData.message,
-    responsePackage : mailData.responsePackage
-  };
+      ccList.push('hap@unilever.com');
 
-  let templates = await ShareMailTemplate(templateObjects);
+      let templateObjects = {
+        shareEmails: mailData.shareEmail, // Extract email addresses
+        user: mailData.user,
+        sender: mailData.sender,
+        shareData: mailData.shareData,
+        message: mailData.message,
+        responsePackage: mailData.responsePackage
+      };
 
-  // create the email message
-  for (const template of templates) {
-    let msg = await createMessage(
-      toList,
-      'hap@unilever.com',
-      ccList,
-      `${value.name} thinks you will be interested in ${mailData.shareData.product_title}`,
-      template
-    );
+      let templates = await ShareMailTemplate(templateObjects);
 
-    console.log(template);
+      // create the email message
+      for (const template of templates) {
+        let msg = await createMessage(
+          toList,
+          'hap@unilever.com',
+          ccList,
+          `${value.name} thinks you will be interested in ${mailData.shareData.product_title}`,
+          template
+        );
 
-    // send the email
-    mailResponse = await sendMailSg(msg);
+        console.log(template);
+
+        // send the email
+        mailResponse = await sendMailSg(msg);
+      }
+    }
   }
-}
-}
 
   return true;
 };
@@ -2982,14 +2980,14 @@ const orderMail = async (mailData) => {
   let email = mailData.user.email;
   let name = mailData.user.name;
 
-  let toList = ["anshu.rani@unilever.com","binay.kumar@unilever.com"];
+  let toList = ["anshu.rani@unilever.com", "binay.kumar@unilever.com"];
   toList.push(email);
   let ccList = [];
   ccList.push(config.sendGridFrom);
   let templateObject = {
     name: name,
     randomData: mailData.randomData,
-    
+
   };
 
   let temp = await orderMailTemplate(templateObject);
@@ -3006,7 +3004,6 @@ const orderMail = async (mailData) => {
   // send mail
 };
 
-
 const productOrderMailTemplate = async (templateObject) => {
   let templ = `<html lang="en">
   <head>
@@ -3014,24 +3011,92 @@ const productOrderMailTemplate = async (templateObject) => {
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Order Confirmation</title>
+      <style>
+          
+          #content {
+              padding: 0.1rem;
+              padding-left: 1rem;
+              font-style: initial;
+              font-weight: 500;
+              word-spacing: 0.2rem;
+              text-align: center; /* Centering the content */
+          }
+
+          table {
+              margin: 0 auto; /* Centering the table */
+          }
+
+          th, td {
+              padding: 10px;
+              border: 1px solid #ddd;
+          }
+      </style>
   </head>
-  <body style="background-color: #deeaf6;">
-      <section id="content" style="padding: 0.1rem; padding-left: 1rem; font-style: initial; font-weight: 500; word-spacing: 0.2rem;">
+  <body>
+      <section id="content">
           <p>Dear <span id="user">${templateObject.name}</span>,</p>
           <p style="font-size: 0.95rem;">Thank you for your purchase with us under <span id="OrderID">${templateObject.randomData.orderID}</span></p>
           <br/>
           <p>Below are the details of your order:-</p>
           <br/>
           <table>
-              <tr>
-                  <th>Order ID</th>
-                  <td>${templateObject.randomData.orderID}</td>
-              </tr>
-              <tr>
-                  <th>Employee Twin Name</th>
-                  <td>${templateObject.randomData.ET_name}</td>
-              </tr>
-          </table>
+          <tr>
+              <th>Order ID</th>
+              <td>${templateObject.randomData.orderID}</td>
+          </tr>
+          <tr>
+              <th>Employee Twin Name</th>
+              <td>${templateObject.randomData.ET_name}</td>
+          </tr>
+          <tr>
+              <th>Function</th>
+              <td>${templateObject.randomData.function}</td>
+          </tr>
+          <tr>
+              <th>Region</th>
+              <td>${templateObject.randomData.region}</td>
+          </tr>
+          <tr>
+              <th>Descriptions</th>
+              <td>${templateObject.randomData.descriptions}</td>
+          </tr>
+          <tr>
+              <th>ET Logo</th>
+              <td>${templateObject.randomData.ET_logo}</td>
+          </tr>
+          <tr>
+              <th>Business Owner</th>
+              <td>${templateObject.randomData.Business_owner}</td>
+          </tr>
+          <tr>
+              <th>Country Code</th>
+              <td>${templateObject.randomData.Country_code}</td>
+          </tr>
+          <tr>
+              <th>GL Account</th>
+              <td>${templateObject.randomData.GL_Account}</td>
+          </tr>
+          <tr>
+              <th>Cost Centre Owner</th>
+              <td>${templateObject.randomData.Cost_centre_owner}</td>
+          </tr>
+          <tr>
+              <th>To Country Code</th>
+              <td>${templateObject.randomData.To_country_code}</td>
+          </tr>
+          <tr>
+              <th>To Cost Centre</th>
+              <td>${templateObject.randomData.To_cost_centre}</td>
+          </tr>
+          <tr>
+              <th>Comment Text</th>
+              <td>${templateObject.randomData.commentText}</td>
+          </tr>
+          <tr>
+              <th>Comment Type</th>
+              <td>${templateObject.randomData.commentType}</td>
+          </tr>
+      </table>
           <p>Regards,<br/>Automation Factory</p>
       </section>
   </body>
@@ -3040,12 +3105,81 @@ const productOrderMailTemplate = async (templateObject) => {
   return templ;
 };
 
+// const buyNowMail = async (mailData) => {
+//   //get user email
+//   let email = mailData.user.email;
+//   let name = mailData.user.name;
+
+//   let toList = [];
+//   toList.push(email);
+
+//   let toHAPList = [];
+//   toHAPList.push({
+//     // name: "Veshaly varshney",
+//     // email: "mailto:veshaly.varshney@unilever.com"
+//     email: 'hap@unilever.com',
+//   });
+
+//   let HAPemail = toHAPList.map((HAPitem) => HAPitem.email);
+
+//   const { list, ...items } = mailData.responseDetails;
+
+
+
+//   let ccList = [];
+//   //mailto:cclist.push('hap@unilever.com');
+
+//   let templateObject = {
+//     user: mailData.user,
+//     buyNowData: mailData.buyNowData,
+//     responseDetails: mailData.responseDetails,
+//     list: list,
+//     toHAPList: toHAPList,
+//   };
+
+//   let temp = await buyNowMailTemplate(templateObject);
+
+//   let HAPtemp = await HAPbuyNowMailTemplate(templateObject);
+
+//   //console.log('to list ', toList);
+//   //console.log('cc list', ccList);
+
+//   // create template
+//   let msg = await createMessage(
+//     toList,
+//     'hap@unilever.com',
+//     ccList,
+//     `Hi ${name}, ${mailData.responseDetails.legend?.name || mailData.responseDetails.pro?.name} purchase is successful!`,
+//     temp
+//   );
+//   mailResponse = await sendMailSg(msg);
+
+//   for (const template of HAPtemp) {
+//     let HAPmsg = await createMessage(
+//       HAPemail,
+//       'hap@unilever.com',
+//       ccList,
+//       `New purchase of ${mailData.responseDetails.legend?.name || mailData.responseDetails.pro?.name} made by ${name}!`,
+//       template
+//     );
+//     mailResponse = await sendMailSg(HAPmsg);
+//     //console.log(template);
+//   }
+
+//   // create to anc cc
+//   return true;
+//   // create message
+
+//   // send mail
+// };
+
+
 const productOrderMail = async (mailData) => {
   //get user email
   let email = mailData.user.email;
   let name = mailData.user.name;
 
-  let toList = ["anshu.rani@unilever.com","binay.kumar@unilever.com","ritik.bhadauria@unilever.com"];
+  let toList = ["ritik.bhadauria@unilever.com"];
   toList.push(email);
 
   let ccList = [];
@@ -3062,8 +3196,8 @@ const productOrderMail = async (mailData) => {
   console.log('cc list', ccList);
 
   // create template
-  let msg = await createMessage(toList, config.sendGridFrom, ccList, `Thank You for Your Order! Order Confirmation Inside. Order id - ${templateObject.randomData.orderID} `, temp);
-  console.log("msgmsgmsgmsg",msg)
+  let msg = await createMessage(toList, "hap@unilever.com", ccList, `Thank You for Your Order! Order Confirmation Inside. Order id - ${templateObject.randomData.orderID} `, temp);
+
   mailResponse = await sendMailSg(msg);
   // create to anc cc
   return true;
@@ -3085,12 +3219,12 @@ export default {
   devopsMailer,
   feedbackMail,
   randomMail,
-//ordermail API
-orderMail,
-CheckoutMail,
-deleteSkillMail,
+  //ordermail API
+  orderMail,
+  CheckoutMail,
+  deleteSkillMail,
   addSkillMail,
-buyNowMail,
+  buyNowMail,
   pinMail,
   shareMail,
   costControlMail,
