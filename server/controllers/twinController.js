@@ -6321,7 +6321,7 @@ console.log("resultresultresult 2584 cogitiveRunCost 11233344",resultSum);
       emailData:dataValuesData,
       user: req.user,
       type: 'CostCenter',
-      totalRunCost:resultSum,
+      totalRunCost: resultSum,
       monthName:monthName,
       selectedYear:selectedYear,
     };
@@ -6889,6 +6889,7 @@ const generatePDFAPI = catchAsync(async (req, res) => {
       doc.text(pdfDoc.countryCode, updatecolumn2, yPos + 154);
 
       doc.text("Total Run-Cost", updatecolumn1, yPos + 176);
+
       doc.text(totalRunCost, updatecolumn2, yPos + 176);
 
 
@@ -6952,7 +6953,7 @@ const generatePDFAPI = catchAsync(async (req, res) => {
   doc.moveTo(secondCol1 - 50, secondTabelRow + i * dynamicRowHeight).lineTo(secondCol3 + 100, secondTabelRow + i * dynamicRowHeight).stroke();
   rowValue += dynamicRowHeight;
   skillNameWidth > doubleRowHeightThreshold ? doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * dynamicRowHeight - 26, { width: 175 }) : doc.text(finalValues[i - 1].skillName, secondCol1 - 45, secondTabelRow + i * dynamicRowHeight - 20, { width: 175 })
-  
+
   doc.text(finalValues[i - 1].skillType, secondCol2 - 30, secondTabelRow + i * dynamicRowHeight - 20);
   doc.text(finalValues[i - 1].runCost, secondCol3 - 30, secondTabelRow + i * dynamicRowHeight - 20);
 
