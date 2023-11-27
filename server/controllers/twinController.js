@@ -2700,8 +2700,8 @@ const getallSkillsByET = catchAsync(async (req, res, next) => {
           twin:"",
           tech:"Gen AI",
           empTwinId:"",
-          price:6,
-          costType:"Hour",
+          price: botExternalId == 6312 ? 40 : 6,
+          costType: botExternalId == 6312 ? "1000 Hits" : "Hour",
           id:botID
         })
       );
@@ -4017,8 +4017,8 @@ const getTwinDataByET = catchAsync(async (req, res, next) => {
         Twin:"",
         Tech:"Gen AI",
         empTwinId:"",
-        price:6,
-        costType:"Hour",
+        price: botExternalId == 6312 ? 40 : 6,
+        costType: botExternalId == 6312 ? "1000 Hits" : "Hour",
         id:botID
       })
     );
@@ -7712,8 +7712,8 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
 
     if (result.length <= 0) {
       return res
-        .status(404)
-        .json({ success: false, message: 'User has not selected any items yet', code: 404 });
+        .status(200)
+        .json({ success: false, message: 'User has not selected any items yet', code: 200 });
     }
 
     let totalPrice = 0;
