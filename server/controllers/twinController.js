@@ -7504,7 +7504,7 @@ const toggleSkillsToMinicart = catchAsync(async (req, res, next) => {
       } else {
         const botData = await BotUser.Bot.findOne({
           where: {
-            botID: BotIDorSkillID,
+            botExternalId: BotIDorSkillID,
           },
         });
 
@@ -7714,7 +7714,7 @@ const getselectedSkills = catchAsync(async (req, res, next) => {
       return res
         .status(200)
         .json({ success: false, message: 'User has not selected any items yet', code: 200 });
-    }
+            }
 
     let totalPrice = 0;
 
